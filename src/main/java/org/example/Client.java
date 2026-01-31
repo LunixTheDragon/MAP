@@ -73,16 +73,29 @@ public class Client {
             if (isAuthenticated) {
                 System.out.println("--- CHAT ---");
                 while (true) {
+
                     System.out.println("Komu");
                     String receiver = scanner.nextLine();
 
                     System.out.println("Zprava ");
                     String msg = scanner.nextLine();
+
                     if ("konec".equalsIgnoreCase(msg)) break;
 
                     out.write("MSG:" + myName + ":" +receiver + ":" + msg);
                     out.newLine();
                     out.flush();
+
+                    String response = in.readLine();
+
+                    switch (response) {
+                        case "MSG_OK" ->
+                                System.out.println(" Zpráva odeslána");
+                        case "USER_NOT_FOUND" ->
+                                System.out.println(" Uživatel neexistuje");
+                        default ->
+                                System.out.println(" Zpráva odeslána");
+                    }
                 }
             }
 

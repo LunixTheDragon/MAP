@@ -79,7 +79,16 @@ public class Server {
                             String receiver = parts[2];
                             String message = parts[3];
 
-                            saveMessageToDb(db, sender, receiver, message);
+                            if (!userExists(db, receiver)) {
+                                out.write("USER_NOT_FOUND");
+                                out.newLine();
+                                out.flush();
+                            }else{
+                                saveMessageToDb(db, sender, receiver, message);
+                                out.write("MSG OK");
+                                out.newLine();
+                                out.flush();
+                            }
                         }
                         break;
 
@@ -139,6 +148,20 @@ public class Server {
             pstmt.setString(2, password);
 
             return pstmt.executeQuery().next();
+        }catch(SQLException e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private static boolean userExists(Conn db, String username){
+        String sql = "SELECT * FROM users WHERE name = ?";
+
+        try (Connection conn = db.connect();
+            PreparedStatement pstmt = conn.prepareStatement(sql)){
+
+            pstmt.setString(1, username);
+            return  pstmt.executeQuery().next();
         }catch(SQLException e){
             e.printStackTrace();
             return false;
