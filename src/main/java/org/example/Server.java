@@ -19,7 +19,21 @@ public class Server {
         Conn db = new Conn();
 
         // Try-with-resources pro automatické zavření socketu
-        try (ServerSocket serverSocket = new ServerSocket(PORT)) { //start serveru
+        try(ServerSocket serverSocket= new ServerSocket(PORT)){
+            while(true){
+                System.out.println("Waiting for Client");
+                Socket clientSocket = serverSocket.accept(); //waiting on client
+                System.out.println("Klient připojen: " + clientSocket.getRemoteSocketAddress());
+
+                handleClient(clientSocket, db);
+            }
+        }catch(IOException e){
+            System.out.println("Server error: " + e.getMessage());
+        }
+       /*
+
+
+        // Try-with-resources pro automatické zavření socketu
 
             // Čekání na klienta (blokující operace)
             Socket clientSocket = serverSocket.accept(); //waiting on client
@@ -87,6 +101,14 @@ public class Server {
 
         } catch (IOException e) {
             e.printStackTrace();
+        }*/
+    }
+    private static void handleClient(Socket clientSocket, Conn db){
+        try(
+                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8))
+                ) {
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
