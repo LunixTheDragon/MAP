@@ -74,8 +74,12 @@ public class Server {
                         break;
 
                     case "MSG":
-                        if (parts.length >= 3) {
-                            saveMessageToDb(db, parts[1], parts[2]);
+                        if (parts.length >= 4) {
+                            String sender = parts[1];
+                            String receiver = parts[2];
+                            String message = parts[3];
+
+                            saveMessageToDb(db, sender, receiver, message);
                         }
                         break;
 
@@ -89,16 +93,19 @@ public class Server {
         }
     }
 
-    private static void saveMessageToDb(Conn db, String sender, String text) {
-        String sql = "INSERT INTO messages (sender_name, message_text) VALUES (?, ?)";
-
+    private static void saveMessageToDb(Conn db, String sender,String receiver, String text) {
+        String sql = """
+        INSERT INTO messages (sender_name, receiver_name, message_text)
+        VALUES (?, ?, ?)
+        """;
         try (Connection conn = db.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, sender);
-            pstmt.setString(2, text);
+            pstmt.setString(2, receiver);
+            pstmt.setString(3, text);
             pstmt.executeUpdate();
-            System.out.println("-> Uloženo do DB.");
+            System.out.println("-> Zpráva od " + sender + " pro " + receiver + " uložena.");
 
         } catch (SQLException e) {
             System.err.println("Chyba SQL: " + e.getMessage());

@@ -73,10 +73,14 @@ public class Client {
             if (isAuthenticated) {
                 System.out.println("--- CHAT ---");
                 while (true) {
+                    System.out.println("Komu");
+                    String receiver = scanner.nextLine();
+
+                    System.out.println("Zprava ");
                     String msg = scanner.nextLine();
                     if ("konec".equalsIgnoreCase(msg)) break;
 
-                    out.write("MSG:" + myName + ":" + msg);
+                    out.write("MSG:" + myName + ":" +receiver + ":" + msg);
                     out.newLine();
                     out.flush();
                 }
