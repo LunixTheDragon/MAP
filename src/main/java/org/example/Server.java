@@ -103,12 +103,58 @@ public class Server {
             e.printStackTrace();
         }*/
     }
-    private static void handleClient(Socket clientSocket, Conn db){
-        try(
-                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8))
-                ) {
+    private static void handleClient(Socket clientSocket, Conn db) {
+        try (
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8)
+                );
+                BufferedWriter out = new BufferedWriter(
+                        new OutputStreamWriter(clientSocket.getOutputStream(), StandardCharsets.UTF_8)
+                )
+        ) {
+            String line;
+
+            while ((line = in.readLine()) != null) {
+                System.out.println("Přijato: " + line);
+
+                String[] parts = line.split(":");
+                if (parts.length < 2) continue;
+
+                String command = parts[0];
+
+                switch (command) {
+
+                    case "REG":
+                        if (parts.length >= 4) {
+                            boolean success = registerUser(db, parts[1], parts[2], parts[3]);
+                            out.write(success ? "REG_OK" : "REG_ERR");
+                            out.newLine();
+                            out.flush();
+                        }
+                        break;
+
+                    case "LOG":
+                        boolean success =
+                                parts.length >= 3 && loginUser(db, parts[1], parts[2]);
+
+                        out.write(success ? "LOGIN_OK" : "LOGIN_ERR");
+                        out.newLine();
+                        out.flush();
+                        break;
+
+                    case "MSG":
+                        if (parts.length >= 3) {
+                            saveMessageToDb(db, parts[1], parts[2]);
+                        }
+                        break;
+
+                    default:
+                        System.out.println("Neznámý příkaz: " + command);
+                }
+            }
+
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println("Klient odpojen: " + clientSocket.getRemoteSocketAddress());
         }
     }
 
