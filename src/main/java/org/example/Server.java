@@ -136,7 +136,10 @@ public class Server {
         try (Connection conn = db.connect();
             PreparedStatement pstmt = conn.prepareStatement(sql)){
                 pstmt.setString(1, name);
-                pstmt.setString(2, password);
+
+                String hashedPassword = SecurityUtils.hashPassword(password);
+                pstmt.setString(2, hashedPassword);
+
                 pstmt.setString(3, email);
 
                 pstmt.executeUpdate();
@@ -148,15 +151,22 @@ public class Server {
         }
     }
     private static boolean loginUser(Conn db, String name, String password) {
-        String sql = "SELECT * FROM users WHERE name = ? AND password = ?";
+        String sql = "SELECT * FROM users WHERE name = ?";
 
         try (Connection conn = db.connect();
             PreparedStatement pstmt = conn.prepareStatement(sql)){
 
             pstmt.setString(1, name);
-            pstmt.setString(2, password);
+            var rs = pstmt.executeQuery(); //var abychom nemuseli pouzivat ResultSet datovy typ je to zastupce datoveho typ7u
 
-            return pstmt.executeQuery().next();
+            if(rs.next()){
+                String storedHash = rs.getString("password");
+
+                return SecurityUtils.checkPassword(password, storedHash);
+            }else{
+                return false;
+            }
+
         }catch(SQLException e){
             e.printStackTrace();
             return false;
