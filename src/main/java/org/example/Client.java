@@ -68,7 +68,24 @@ public class Client {
                     return; // Konec programu, nepustíme ho k chatu
                 }
             }
+            System.out.println("S kým si chceš psát?");
+            String receiver1 = scanner.nextLine();
 
+            // Požádáme server o historii
+            out.write("HISTORY:" + myName + ":" + receiver1);
+            out.newLine();
+            out.flush();
+
+            // Čteme historii, dokud nepřijde konec
+            String line;
+            while ((line = in.readLine()) != null) {
+                if (line.equals("HIST_END")) break; // Konec načítání
+
+                if (line.startsWith("HIST:")) {
+                    String[] parts = line.split(":", 3); // Rozdělíme na 3 části
+                    System.out.println(parts[1] + ": " + parts[2]); // Vypíše: "Pepa: Ahoj"
+                }
+            }
             // 3. Změna: Do chatu pustíme jen ověřeného
             if (isAuthenticated) {
                 System.out.println("--- CHAT ---");

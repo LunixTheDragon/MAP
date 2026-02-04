@@ -91,6 +91,15 @@ public class Server {
                             }
                         }
                         break;
+                    case "HISTORY":
+                        if (parts.length >= 3) {
+                            String me = parts[1];      // Kdo žádá (já)
+                            String other = parts[2];   // S kým si píšu
+
+                            // Načteme zprávy z DB
+                            loadHistory(db, out, me, other);
+                        }
+                        break;
 
                     default:
                         System.out.println("Neznámý příkaz: " + command);
@@ -151,6 +160,42 @@ public class Server {
         }catch(SQLException e){
             e.printStackTrace();
             return false;
+        }
+    }
+    private static void loadHistory(Conn db, BufferedWriter out, String user1, String user2) {
+        // Vybereme zprávy kde (odesílatel je user1 A příjemce user2) NEBO (odesílatel je user2 A příjemce user1)
+        // Seřadíme je podle času
+        String sql = "SELECT sender_name, message_text FROM messages " +
+                "WHERE (sender_name = ? AND receiver_name = ?) " +
+                "OR (sender_name = ? AND receiver_name = ?) " +
+                "ORDER BY id ASC"; // Pokud nemáš čas, řaď podle ID
+
+        try (Connection conn = db.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, user1);
+            pstmt.setString(2, user2);
+            pstmt.setString(3, user2);
+            pstmt.setString(4, user1);
+
+            var rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                String sender = rs.getString("sender_name");
+                String msg = rs.getString("message_text");
+
+                // Pošleme klientovi speciální zprávu s historií
+                out.write("HIST:" + sender + ":" + msg);
+                out.newLine();
+            }
+            out.flush();
+            // Značka, že historie skončila
+            out.write("HIST_END");
+            out.newLine();
+            out.flush();
+
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
         }
     }
 

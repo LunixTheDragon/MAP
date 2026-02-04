@@ -8,8 +8,8 @@ public class Conn {
     // DŮLEŽITÉ: Musí tam být "jdbc:mariadb://"
     String url = "jdbc:mariadb://ita03.vas-server.cz:3306/vlcek_MAP";
 
-    String username = "vlcek";
-    String password = "ElJam8rzcqykyiCR";
+    private String username = "vlcek";
+    private String password = "ElJam8rzcqykyiCR";
 
     public Connection connect() {
         try {
