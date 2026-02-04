@@ -88,30 +88,29 @@ public class Client {
             }
             // 3. Změna: Do chatu pustíme jen ověřeného
             if (isAuthenticated) {
-                System.out.println("--- CHAT ---");
-                while (true) {
+                System.out.println("--- CHAT s uživatelem " + receiver1 + " ---"); // Informace pro uživatele
 
-                    System.out.println("Komu");
-                    String receiver = scanner.nextLine();
+                    while (true) {
 
-                    System.out.println("Zprava ");
+                    System.out.println("You ");
                     String msg = scanner.nextLine();
 
                     if ("konec".equalsIgnoreCase(msg)) break;
 
-                    out.write("MSG:" + myName + ":" +receiver + ":" + msg);
+                    out.write("MSG:" + myName + ":" +receiver1 + ":" + msg);
                     out.newLine();
                     out.flush();
 
                     String response = in.readLine();
 
                     switch (response) {
-                        case "MSG_OK" ->
-                                System.out.println(" Zpráva odeslána");
+                        case "MSG_OK" -> {
+
+                        }
                         case "USER_NOT_FOUND" ->
                                 System.out.println(" Uživatel neexistuje");
                         default ->
-                                System.out.println(" Zpráva odeslána");
+                                System.out.println("Server: " + response);
                     }
                 }
             }

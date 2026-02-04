@@ -131,6 +131,12 @@ public class Server {
     }
 
     private static boolean registerUser(Conn db, String name, String password, String email) {
+       if(userExists(db, name)){
+
+           System.out.println("Registrace zamítnuta: Uživatel " + name + " již existuje.");
+           return false;
+
+       }
         String sql = "INSERT INTO users (name, password, email) VALUES (?, ?, ?)";
 
         try (Connection conn = db.connect();
