@@ -56,8 +56,8 @@ public class Server {
                 switch (command) {
 
                     case "REG":
-                        if (parts.length >= 4) {
-                            boolean success = registerUser(db, parts[1], parts[2], parts[3]);
+                        if (parts.length >= 5) {
+                            boolean success = registerUser(db, parts[1], parts[2], parts[3], parts[4]);
                             out.write(success ? "REG_OK" : "REG_ERR");
                             out.newLine();
                             out.flush();
@@ -130,14 +130,14 @@ public class Server {
         }
     }
 
-    private static boolean registerUser(Conn db, String name, String password, String email) {
+    private static boolean registerUser(Conn db, String name, String password, String email, String public_Key) {
        if(userExists(db, name)){
 
            System.out.println("Registrace zamítnuta: Uživatel " + name + " již existuje.");
            return false;
 
        }
-        String sql = "INSERT INTO users (name, password, email) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO users (name, password, email, public_Key) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = db.connect();
             PreparedStatement pstmt = conn.prepareStatement(sql)){
@@ -147,6 +147,8 @@ public class Server {
                 pstmt.setString(2, hashedPassword);
 
                 pstmt.setString(3, email);
+
+                 pstmt.setString(4, public_Key);
 
                 pstmt.executeUpdate();
                 System.out.println("User " + name + " registrated.");

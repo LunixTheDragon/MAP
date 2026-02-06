@@ -3,6 +3,8 @@ package org.example;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 
 public class Client {
@@ -34,9 +36,31 @@ public class Client {
                 System.out.print("Heslo: "); String pass = scanner.nextLine();
                 System.out.print("Email: "); String email = scanner.nextLine();
 
-                out.write("REG:" + name + ":" + pass + ":" + email);
-                out.newLine();
-                out.flush();
+                try {
+                    //generating keys
+
+                    KeyPair keyPair = SecurityUtils.RSAUtils.generateKeyPair();
+                    String pubKeyStr = SecurityUtils.RSAUtils.keyToString(keyPair.getPublic());
+                    String privKeyStr = SecurityUtils.RSAUtils.keyToString(keyPair.getPrivate());
+
+                    //Saving private key on disc
+                    try(FileWriter fw = new FileWriter(name +"_private.key" )){
+                        fw.write(privKeyStr);
+                    }
+                    System.out.println("Váš privátní klíč byl uložen do souboru: " + name + "_private.key");
+                    System.out.println("NIKOMU HO NEPOSÍLEJTE!");
+
+                    //sending reg to server (adding public key on the end)
+
+                    out.write("REG:" + name + ":" + pass + ":" + email + ":" + pubKeyStr);
+                    out.newLine();
+                    out.flush();
+
+                } catch (Exception e) {
+                    System.err.println("Chyba při generování klíčů: " + e.getMessage());
+                    return;
+                }
+
 
                 // Čekáme na odpověď serveru
                 String response = in.readLine();
