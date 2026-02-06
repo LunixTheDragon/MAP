@@ -6,6 +6,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.security.PublicKey;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -65,10 +66,61 @@ public class Server {
                         break;
 
                     case "LOG":
-                        boolean success =
-                                parts.length >= 3 && loginUser(db, parts[1], parts[2]);
+                        // 1. Fáze: Ověření hesla
+                        if (parts.length < 3) {
+                            out.write("LOGIN_ERR"); out.newLine(); out.flush();
+                            break;
+                        }
 
-                        out.write(success ? "LOGIN_OK" : "LOGIN_ERR");
+                        String username = parts[1];
+                        String pass = parts[2];
+
+                        // Získáme veřejný klíč z DB, pokud heslo sedí
+                        String userPubKeyStr = loginUser(db, username, pass);
+
+                        if (userPubKeyStr != null) {
+                            // Heslo je správně, teď 2. Fáze: Challenge (Výzva)
+
+                            // Vygenerujeme náhodný řetězec (např. náhodné číslo)
+                            String challenge = String.valueOf(Math.random());
+
+                            // Pošleme výzvu klientovi
+                            out.write("AUTH_CHALLENGE:" + challenge);
+                            out.newLine();
+                            out.flush();
+
+                            // Čekáme na odpověď (podpis)
+                            String responseLine = in.readLine();
+
+                            if (responseLine != null && responseLine.startsWith("AUTH_RESPONSE:")) {
+                                String signature = responseLine.split(":")[1];
+
+                                try {
+                                    // Převedeme String klíč na PublicKey objekt
+                                    PublicKey pk = SecurityUtils.RSAUtils.getPublicKeyFromString(userPubKeyStr);
+
+                                    // Ověříme, zda klient podepsal náš "challenge" správně
+                                    boolean isSignatureValid = SecurityUtils.RSAUtils.verify(challenge, signature, pk);
+
+                                    if (isSignatureValid) {
+                                        out.write("LOGIN_OK");
+                                    } else {
+                                        System.out.println("Podpis nesouhlasí!");
+                                        out.write("LOGIN_ERR_SIG"); // Chyba podpisu
+                                    }
+
+                                } catch (Exception e) {
+                                    System.out.println("Chyba krypto: " + e.getMessage());
+                                    out.write("LOGIN_ERR");
+                                }
+                            } else {
+                                out.write("LOGIN_ERR");
+                            }
+                        } else {
+                            // Špatné jméno nebo heslo
+                            out.write("LOGIN_ERR");
+                        }
+
                         out.newLine();
                         out.flush();
                         break;
@@ -158,8 +210,28 @@ public class Server {
              return false;
         }
     }
-    private static boolean loginUser(Conn db, String name, String password) {
-        String sql = "SELECT * FROM users WHERE name = ?";
+    private static String loginUser(Conn db, String name, String password) {
+        String sql = "SELECT password, public_Key FROM users WHERE name = ?";
+
+        try (Connection conn = db.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)){
+
+            pstmt.setString(1, name);
+            var rs = pstmt.executeQuery();
+
+            if(rs.next()){
+                String storedHash = rs.getString("password");
+                String publicKey = rs.getString("public_Key");
+
+                if (SecurityUtils.checkPassword(password, storedHash)) {
+                    return publicKey; // Vracíme klíč pro ověření 2. fáze
+                }
+            }
+        } catch(SQLException e){
+            e.printStackTrace();
+        }
+        return null; // Chyba nebo špatné heslo
+       /* String sql = "SELECT * FROM users WHERE name = ?";
 
         try (Connection conn = db.connect();
             PreparedStatement pstmt = conn.prepareStatement(sql)){
@@ -178,7 +250,7 @@ public class Server {
         }catch(SQLException e){
             e.printStackTrace();
             return false;
-        }
+        }*/
     }
     private static void loadHistory(Conn db, BufferedWriter out, String user1, String user2) {
         // Vybereme zprávy kde (odesílatel je user1 A příjemce user2) NEBO (odesílatel je user2 A příjemce user1)

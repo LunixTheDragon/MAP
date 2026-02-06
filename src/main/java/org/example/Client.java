@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.util.Scanner;
 
 public class Client {
@@ -83,10 +84,46 @@ public class Client {
                 // 2. Změna: Čekáme, co řekne server
                 String response = in.readLine();
 
+                if (response.startsWith("AUTH_CHALLENGE")){
+                    String challenge = response.split(":")[1];
+                    System.out.println("Server vyžaduje ověření klíčem. Hledám klíč...");
+
+                    try {
+                        // Načtení privátního klíče ze souboru
+                        File keyFile = new File(name +"_private.key");
+                        if (!keyFile.exists()) {
+                            System.err.println("Chyba: Soubor s klíčem '" + keyFile.getName() + "' neexistuje! Nemůžete se přihlásit.");
+                            return;
+                        }
+
+                        String privKeyStr = java.nio.file.Files.readString(keyFile.toPath());
+
+                        // Převod na objekt PrivateKey (použijeme novou metodu z SecurityUtils)
+                        PrivateKey privateKey = SecurityUtils.RSAUtils.getPrivateKeyFromString(privKeyStr);
+
+                        // Podepíšeme tu "výzvu", co poslal server
+                        String signature = SecurityUtils.RSAUtils.sign(challenge, privateKey);
+
+                        out.write("AUTH_RESPONSE:" + signature);
+                        out.newLine();
+                        out.flush();
+
+                        // 3. Čekáme na finální verdikt
+                        response = in.readLine();
+                    }  catch (Exception e) {
+                        System.err.println("Chyba při zpracování klíče: " + e.getMessage());
+                        return;
+                }
+                }
+                
+
                 if ("LOGIN_OK".equals(response)) {
                     System.out.println("Přihlášení ÚSPĚŠNÉ! Vítej.");
                     myName = name;
                     isAuthenticated = true; // Pustíme ho dál
+                } else if ("LOGIN_ERR_SIG".equals(response)) {
+                    System.err.println("CHYBA: Ověření klíče selhalo! Máte správný soubor?");
+                    return;
                 } else {
                     System.err.println("CHYBA: Špatné jméno nebo heslo!");
                     return; // Konec programu, nepustíme ho k chatu

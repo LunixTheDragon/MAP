@@ -3,6 +3,7 @@ package org.example;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.security.*;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
@@ -52,6 +53,13 @@ public class SecurityUtils {
             signature.initVerify(publicKey);
             signature.update(data.getBytes());
             return signature.verify(Base64.getDecoder().decode(signature64));
+        }
+        public static PrivateKey getPrivateKeyFromString(String key64) throws Exception {
+            byte[] data = Base64.getDecoder().decode(key64);
+            // Privátní klíče v Javě používají standard PKCS8
+            PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(data);
+            KeyFactory factory = KeyFactory.getInstance("RSA");
+            return factory.generatePrivate(spec);
         }
     }
 }
