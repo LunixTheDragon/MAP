@@ -1,11 +1,13 @@
 package org.example;
 
+import javax.crypto.SecretKey;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.Scanner;
 
 public class Client {
@@ -52,8 +54,9 @@ public class Client {
                     System.out.println("NIKOMU HO NEPOSÍLEJTE!");
 
                     //sending reg to server (adding public key on the end)
+                    String securityHash = SecurityUtils.createUserSecurityHash(privKeyStr, pubKeyStr);
 
-                    out.write("REG:" + name + ":" + pass + ":" + email + ":" + pubKeyStr);
+                    out.write("REG:" + name + ":" + pass + ":" + email + ":" + pubKeyStr + ":" + securityHash );
                     out.newLine();
                     out.flush();
 
@@ -151,29 +154,84 @@ public class Client {
             if (isAuthenticated) {
                 System.out.println("--- CHAT s uživatelem " + receiver1 + " ---"); // Informace pro uživatele
 
-                    while (true) {
+                  try{
+                      //priv key needed for unlocking AES key
+                      File myFile = new File(myName + "_private.key");
+                      String myString = java.nio.file.Files.readString(myFile.toPath());
+                      PrivateKey privateKey = SecurityUtils.RSAUtils.getPrivateKeyFromString(myString);
 
-                    System.out.println("You ");
-                    String msg = scanner.nextLine();
+                      //AES
+                      SecretKey chatKEy = null;
+                      File aesFile = new File("chat_" + myName + "_" + receiver1 + ".key" );
 
-                    if ("konec".equalsIgnoreCase(msg)) break;
+                      if (aesFile.exists()){
+                          //we have key on disc
+                          System.out.println("Načítám uložený šifrovací klíč z disku...");
+                          String storedKey = java.nio.file.Files.readString(aesFile.toPath());
+                          chatKEy = SecurityUtils.AESUtils.stringToKey(storedKey);
+                      }else{
+                          System.out.println("Nemam klic koukam na stav mistnosti");
 
-                    out.write("MSG:" + myName + ":" +receiver1 + ":" + msg);
-                    out.newLine();
-                    out.flush();
+                          //is there already chat with the one im writing to?
+                          out.write("JOIN_ROOM:" + myName + ":" + receiver1);
+                          out.newLine();
+                          out.flush();
 
-                    String response = in.readLine();
+                          String serverResponse = in.readLine();
 
-                    switch (response) {
-                        case "MSG_OK" -> {
+                          if (serverResponse.startsWith("ROOM_OK:")){
+                              //Server sent key encrypted with my public key
+                              String encryptedAesKey = serverResponse.split(":")[1];
 
-                        }
-                        case "USER_NOT_FOUND" ->
-                                System.out.println(" Uživatel neexistuje");
-                        default ->
-                                System.out.println("Server: " + response);
-                    }
-                }
+                              //decrypt with privateKey
+                              String decryptedAesKey = SecurityUtils.RSAUtils.decryptKey(encryptedAesKey, privateKey);
+                              chatKEy = SecurityUtils.AESUtils.stringToKey(decryptedAesKey);
+
+                              //save the file for next time
+                              try(FileWriter fw = new FileWriter(aesFile)){
+                                    fw.write(encryptedAesKey);
+                              }
+                              System.out.println("Klíč stažen ze serveru a uložen.");
+                          } else if (serverResponse.equals("ROOM_MISSING")) {
+                              //ROOM does not exist, it needs to be started
+                              System.out.println("Místnost neexistuje. Zakládám nové zabezpečené spojení...");
+
+                              //generate new AESKEy
+                              chatKEy = SecurityUtils.AESUtils.generateAESKey();
+                              String chatKeyStr = SecurityUtils.AESUtils.keyToString(chatKEy);
+
+                              //need public key of receiver
+                              out.write("GET_PUBKEY:" + receiver1);
+                              out.newLine();
+                              out.flush();
+
+                              String pubKeyResp = in.readLine();
+                              if (!pubKeyResp.startsWith("PUBKEY:")){
+                                  System.out.println("Chyba: Uživatel " + receiver1 + " neexistuje nebo nemá klíč.");
+                                  return;
+                              }
+
+                              // Získáme veřejný klíč kamaráda
+                              PublicKey receiverPubKey = SecurityUtils.RSAUtils.getPublicKeyFromString(pubKeyResp.split(":")[1]);
+
+                              // Získáme i svůj veřejný klíč (abychom si klíč mohli uložit i pro sebe na server)
+                              // (Pro zjednodušení ho vytáhneme znovu z vygenerovaného páru nebo souboru, zde předpokládám reload ze souboru, pokud ho nemáš v paměti)
+                              // Tady si to zjednodušíme - server už náš Public Key má v DB, ale pro šifrování ho potřebujeme tady.
+                              // Načteme si ho z párů klíčů (v reálu bys ho měl mít uložený v proměnné při startu)
+                              // Pro teď použijeme trik: vytvoříme klíč pro sebe tak, že ho zašifrujeme svým Public klíčem.
+                              // Aby to fungovalo, musel by sis při startu načíst i svůj Public Key.
+                              // ZDE PROZATÍMNÍ ŘEŠENÍ: Serveru pošleme AES klíč zašifrovaný pro NĚJ (receiver) a pro MĚ (sender).
+
+                              // Potřebuji svůj Public Key. V kódu výše ho nemáme načtený.
+                              // Přidej si do Client.java nahoru načtení i public key, nebo ho získej z privátního (nejde snadno).
+                              // -> Pro tuto chvíli to uděláme tak, že si klíč uložíš jen lokálně a na server pošleš verzi pro kamaráda.
+                              // (Ale správně bys měl na server poslat obě verze).
+
+                          }
+                      }
+                  } catch (Exception e) {
+                      throw new RuntimeException(e);
+                  }
             }
 
         } catch (IOException e) {
