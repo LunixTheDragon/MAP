@@ -189,7 +189,7 @@ public class Client {
 
                               //save the file for next time
                               try(FileWriter fw = new FileWriter(aesFile)){
-                                    fw.write(encryptedAesKey);
+                                    fw.write(SecurityUtils.AESUtils.keyToString(chatKEy));
                               }
                               System.out.println("Klíč stažen ze serveru a uložen.");
                           } else if (serverResponse.equals("ROOM_MISSING")) {
@@ -214,23 +214,53 @@ public class Client {
                               // Získáme veřejný klíč kamaráda
                               PublicKey receiverPubKey = SecurityUtils.RSAUtils.getPublicKeyFromString(pubKeyResp.split(":")[1]);
 
-                              // Získáme i svůj veřejný klíč (abychom si klíč mohli uložit i pro sebe na server)
-                              // (Pro zjednodušení ho vytáhneme znovu z vygenerovaného páru nebo souboru, zde předpokládám reload ze souboru, pokud ho nemáš v paměti)
-                              // Tady si to zjednodušíme - server už náš Public Key má v DB, ale pro šifrování ho potřebujeme tady.
-                              // Načteme si ho z párů klíčů (v reálu bys ho měl mít uložený v proměnné při startu)
-                              // Pro teď použijeme trik: vytvoříme klíč pro sebe tak, že ho zašifrujeme svým Public klíčem.
-                              // Aby to fungovalo, musel by sis při startu načíst i svůj Public Key.
-                              // ZDE PROZATÍMNÍ ŘEŠENÍ: Serveru pošleme AES klíč zašifrovaný pro NĚJ (receiver) a pro MĚ (sender).
+                              out.write("GET_PUBKEY:" + myName);
+                              out.newLine();
+                              out.flush();
+                              String myPubKeyResp = in.readLine();
+                              PublicKey myPubKey = SecurityUtils.RSAUtils.getPublicKeyFromString(myPubKeyResp.split(":")[1]);
 
-                              // Potřebuji svůj Public Key. V kódu výše ho nemáme načtený.
-                              // Přidej si do Client.java nahoru načtení i public key, nebo ho získej z privátního (nejde snadno).
-                              // -> Pro tuto chvíli to uděláme tak, že si klíč uložíš jen lokálně a na server pošleš verzi pro kamaráda.
-                              // (Ale správně bys měl na server poslat obě verze).
+                              //cypher both AES
+                              String encryptedForReceiver = SecurityUtils.RSAUtils.encryptKey(chatKeyStr, receiverPubKey);
+                              String encryptedForMe = SecurityUtils.RSAUtils.encryptKey(chatKeyStr, myPubKey);
 
+                              out.write("CREATE_ROOM:" + myName + ":" + receiver1 + ":" + encryptedForMe + ":" + encryptedForReceiver);
+                              out.newLine();
+                              out.flush();
+
+                              String createResp = in.readLine();
+                              if (!"CREATE_ROOM_OK".equals(createResp)) {
+                                  System.out.println("Chyba při vytváření místnosti!");
+                                  return;
+                              }
+
+                              System.out.println("Místnost založena.");
+                          }
+                      }
+
+                      //chat loop
+                      while (true){
+                          System.out.println("You: ");
+                          String msg = scanner.nextLine();
+                          if ("konec".equalsIgnoreCase(msg)){
+                              break;
+                          }
+
+                          //encrypt message
+                          String encryptedMsg = SecurityUtils.AESUtils.encrypt(msg, chatKEy);
+
+                          out.write("MSG:" + myName + ":" + receiver1 + ":" + encryptedMsg);
+                          out.newLine();
+                          out.flush();
+
+                          String response = in.readLine();
+                          if (!"MSG OK".equals(response)){
+                              System.out.println("Server error" + response);
                           }
                       }
                   } catch (Exception e) {
-                      throw new RuntimeException(e);
+                      System.err.println("CRITICAL ERROR: " + e.getMessage());
+                      e.printStackTrace();
                   }
             }
 

@@ -57,8 +57,8 @@ public class Server {
                 switch (command) {
 
                     case "REG":
-                        if (parts.length >= 5) {
-                            boolean success = registerUser(db, parts[1], parts[2], parts[3], parts[4]);
+                        if (parts.length >= 6) {
+                            boolean success = registerUser(db, parts[1], parts[2], parts[3], parts[4], parts[5]);
                             out.write(success ? "REG_OK" : "REG_ERR");
                             out.newLine();
                             out.flush();
@@ -125,6 +125,49 @@ public class Server {
                         out.flush();
                         break;
 
+                    case "GET_PUBKEY":
+                        if (parts.length >= 2) {
+                            String targetUser = parts[1];
+                            String key = getPublicKey(db, targetUser);
+                            if (key != null) {
+                                out.write("PUBKEY:" + key);
+                            }else{
+                                out.write("ERR_NO_USER");
+                                out.newLine();
+                                out.flush();
+                            }
+                        }
+                        break;
+
+                    case "JOIN_ROOM":
+                        if (parts.length >= 3) {
+                            String me = parts[1];
+                            String other = parts[2];
+                            String encryptedKey = getRoomKey(db, me, other);
+
+                            if (encryptedKey != null) {
+                                out.write("ROOM_OK:" + encryptedKey);
+                            }else{
+                                out.write("ROOM_MISSING");
+                            }
+                            out.newLine();
+                            out.flush();
+                        }
+                        break;
+
+                    case "CREATE_ROOM":
+                        if (parts.length >= 5) {
+                            boolean created = createRoom(db, parts[1], parts[2], parts[3], parts[4]);
+                            if (created) {
+                                out.write("CREATE_ROOM_OK");
+                            } else {
+                                out.write("CREATE_ROOM_ERR");
+                            }
+                            out.newLine();
+                            out.flush();
+                        }
+                        break;
+
                     case "MSG":
                         if (parts.length >= 4) {
                             String sender = parts[1];
@@ -163,6 +206,8 @@ public class Server {
         }
     }
 
+
+
     private static void saveMessageToDb(Conn db, String sender,String receiver, String text) {
         String sql = """
         INSERT INTO messages (sender_name, receiver_name, message_text)
@@ -182,14 +227,14 @@ public class Server {
         }
     }
 
-    private static boolean registerUser(Conn db, String name, String password, String email, String public_Key) {
+    private static boolean registerUser(Conn db, String name, String password, String email, String public_Key, String securityHash) {
        if(userExists(db, name)){
 
            System.out.println("Registrace zamítnuta: Uživatel " + name + " již existuje.");
            return false;
 
        }
-        String sql = "INSERT INTO users (name, password, email, public_Key) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO users (name, password, email, public_Key, security_hash) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = db.connect();
             PreparedStatement pstmt = conn.prepareStatement(sql)){
@@ -201,6 +246,8 @@ public class Server {
                 pstmt.setString(3, email);
 
                  pstmt.setString(4, public_Key);
+
+                 pstmt.setString(5, securityHash);
 
                 pstmt.executeUpdate();
                 System.out.println("User " + name + " registrated.");
@@ -301,5 +348,58 @@ public class Server {
             e.printStackTrace();
             return false;
         }
+    }
+
+    private static String getPublicKey(Conn db, String username){
+        String sql = "SELECT public_Key FROM users WHERE name = ?";
+        try (Connection conn = db.connect()){
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, username);
+            var rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("public_Key");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private static boolean createRoom(Conn db, String u1, String u2, String keyForU1, String keyForU2) {
+
+        //generate id room
+        String roomId = (u1.compareTo(u2) < 0) ? u1 + "_" + u2 : u2 + "_" + u1;
+
+        String sql = "INSERT INTO rooms (room_id, user1_hash, user2_hash, aes_key_for_u1, aes_key_for_u2) VALUES (?, ?, ?, ?, ?)";
+        try(Connection conn = db.connect()){
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, roomId);
+            pstmt.setString(2, u1);
+            pstmt.setString(3, u2);
+            pstmt.setString(4, keyForU1);
+            pstmt.setString(5, keyForU2);
+            pstmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            System.err.println("Room create error: " + e.getMessage());
+            return false;
+        }
+
+    }
+    private static String getRoomKey(Conn db, String me, String other) {
+        // Oprava: Získáváme user1_hash abychom věděli, který klíč vrátit
+        String sql = "SELECT user1_hash, aes_key_for_u1, aes_key_for_u2 FROM rooms WHERE (user1_hash = ? AND user2_hash = ?) OR (user1_hash = ? AND user2_hash = ?)";
+        try(Connection conn = db.connect(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, me); pstmt.setString(2, other);
+            pstmt.setString(3, other); pstmt.setString(4, me);
+            var rs = pstmt.executeQuery();
+            if (rs.next()) {
+                String u1 = rs.getString("user1_hash");
+                return u1.equals(me) ? rs.getString("aes_key_for_u1") : rs.getString("aes_key_for_u2");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
