@@ -102,19 +102,6 @@ public class Client {
             if (isAuthenticated) {
                 System.out.println("S kým si chceš psát?");
                 String receiver1 = scanner.nextLine();
-
-                out.write("HISTORY:" + myName + ":" + receiver1);
-                out.newLine(); out.flush();
-
-                String line;
-                while ((line = in.readLine()) != null) {
-                    if (line.equals("HIST_END")) break;
-                    if (line.startsWith("HIST:")) {
-                        String[] parts = line.split(":", 3);
-                        System.out.println(parts[1] + ": " + parts[2]);
-                    }
-                }
-
                 System.out.println("--- CHAT s uživatelem " + receiver1 + " ---");
 
                 try{
@@ -189,6 +176,29 @@ public class Client {
                             System.out.println("Místnost založena a klíč uložen.");
                         }
                     }
+                out.write("HISTORY:" + myName + ":" + receiver1);
+                out.newLine(); out.flush();
+
+                String line;
+                while ((line = in.readLine()) != null) {
+                    if (line.equals("HIST_END")) break;
+                    if (line.startsWith("HIST:")) {
+                        String[] parts = line.split(":", 3);
+                        String sender = parts[1];
+                        String encryptedMsg = parts[2];
+
+                        try{
+                            //AES decrypt
+                            String decryptedMsg =   SecurityUtils.AESUtils.decrypt(encryptedMsg, chatKEy);
+                            System.out.println(sender + ": " + decryptedMsg);
+
+                        }catch(Exception e){
+                            System.out.println("Error decrypting message: " + e.getMessage());
+                        }
+                    }
+                }
+
+
 
                     // Chat smyčka
                     while (true){

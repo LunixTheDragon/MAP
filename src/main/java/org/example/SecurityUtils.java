@@ -129,7 +129,7 @@ public class SecurityUtils {
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, secretKey);
             byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(cryptedText));
-            return new String(cipher.doFinal(decrypted), StandardCharsets.UTF_8);
+            return new String(decrypted, StandardCharsets.UTF_8);
         }
     }
 }
