@@ -1,5 +1,7 @@
 package org.example;
 
+import utils.SecurityUtils;
+
 import javax.crypto.SecretKey;
 import java.io.*;
 import java.net.Socket;
