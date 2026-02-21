@@ -3,6 +3,7 @@ package graphics;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import org.example.NetworkManager;
@@ -19,6 +20,7 @@ public class LoginController {
     @FXML private TextField emailField;
     @FXML private Button actionBtn;
     @FXML private Button switchModeBtn;
+    @FXML private Label errorLabel;
 
     private boolean isLogged = true;
 
@@ -26,6 +28,7 @@ public class LoginController {
     @FXML
     protected void switchMode() {
         isLogged = !isLogged; // Přepnutí stavu
+        errorLabel.setText(""); //restarting error label
 
         if (isLogged) {
             emailField.setVisible(false);
@@ -49,6 +52,15 @@ public class LoginController {
     protected void handleSubmit() {
         String username = usernameField.getText();
         String password = passwordField.getText();
+
+        if(username.isEmpty() || password.isEmpty()) {
+            errorLabel.setText("Vyplňte všechna pole");
+            return;
+        }
+
+        errorLabel.setText("Connecting..");
+        errorLabel.setStyle("-fx-text-fill: #3390ec;");//blue color at loading state
+
 
         // Zablokujeme pole během načítání
         usernameField.setDisable(true);
@@ -75,11 +87,17 @@ public class LoginController {
                         goToChatScreen();
                     } else {
                         System.out.println("Registrace úspěšná!");
+                        errorLabel.setStyle("-fx-text-fill: #10b981;");
+                        errorLabel.setText("Registrace úspěšná! Můžete se přihlásit.");
                         emailField.clear();
                         switchMode();
                     }
                 } else {
                     System.out.println(isLogged ? "Chyba přihlášení." : "Chyba registrace.");
+                    errorLabel.setStyle("-fx-text-fill: #ef4444;");
+                    errorLabel.setText(isLogged ?
+                            "Nesprávné jméno nebo heslo.\n(Nebo je server nedostupný)" :
+                            "Registrace selhala. Uživatel už možná existuje.");
                 }
 
 
@@ -96,8 +114,8 @@ public class LoginController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/graphics/chat.fxml"));
             Parent root = loader.load();
             Stage stage = (Stage) usernameField.getScene().getWindow();
-            stage.setScene(new Scene(root, 600, 400));
-            stage.setTitle("Chat Room - " + usernameField.getText());
+            stage.setScene(new Scene(root, 700, 500));
+            stage.setTitle("Telegram Style Chat - " + usernameField.getText());
         } catch (Exception e) {
             e.printStackTrace();
         }

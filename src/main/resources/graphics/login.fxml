@@ -23,6 +23,8 @@
 
         <TextField fx:id="emailField" promptText="Email" styleClass="input-field" maxWidth="Infinity" visible="false" managed="false"/>
 
+        <Label fx:id="errorLabel" styleClass="error-label" text="" wrapText="true" textAlignment="CENTER"/>
+
         <Button fx:id="actionBtn" maxWidth="Infinity" onAction="#handleSubmit" styleClass="primary-btn" text="PŘIHLÁSIT SE" />
 
         <Button fx:id="switchModeBtn" styleClass="link-btn" text="Nemáte účet? Zaregistrujte se" onAction="#switchMode"/>

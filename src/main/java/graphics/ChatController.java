@@ -14,9 +14,10 @@ public class ChatController {
 
     @FXML
     public void initialize() {
-        // Tato metoda se zavolá automaticky po načtení FXML
+        String currentUser = org.example.NetworkManager.getInstance().getLoggedUser();
+        currentUserLabel.setText(currentUser != null ? currentUser : "Neznámý uživatel");        // Tato metoda se zavolá automaticky po načtení FXML
         // Zde budeme později inicializovat vlákno pro čtení příchozích zpráv ze sítě
-        chatArea.appendText("Vítej v zabezpečeném chatu!\n");
+        chatArea.appendText("Vítej v zabezpečeném chatu, " + currentUserLabel.getText() + "!\n");
     }
 
     @FXML

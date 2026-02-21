@@ -92,4 +92,8 @@ public class NetworkManager {
             throw new RuntimeException(e);
         }
     }
+
+    public String getLoggedUser() {
+        return loggedUser;
+    }
 }
