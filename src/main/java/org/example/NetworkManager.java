@@ -4,9 +4,13 @@ import utils.SecurityUtils;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import javax.crypto.SecretKey;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,9 +33,37 @@ public class NetworkManager {
 
     public void connect() throws IOException {
         if (socket == null || socket.isClosed()) {
-            socket = new Socket(HOST, PORT);
-            out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+            try {
+                // 1. Načtení certifikátu zevnitř aplikace (složka resources)
+                InputStream trustStoreStream = getClass().getResourceAsStream("/server.jks");
+                if (trustStoreStream == null) {
+                    throw new FileNotFoundException("Certifikát server.jks nebyl nalezen v resources!");
+                }
+
+                // 2. Vytvoření "trezoru" (KeyStore) a načtení našeho souboru pomocí hesla
+                KeyStore trustStore = KeyStore.getInstance("JKS");
+                trustStore.load(trustStoreStream, "tajneheslo".toCharArray());
+
+                // 3. Vytvoření manažera, který bude tomuto konkrétnímu certifikátu věřit
+                TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                tmf.init(trustStore);
+
+                // 4. Nastavení celého SSL spojení (řekneme mu, ať použije našeho manažera)
+                SSLContext sslContext = SSLContext.getInstance("TLS");
+                sslContext.init(null, tmf.getTrustManagers(), null);
+
+                // 5. Vytvoření bezpečného TLS (SSL) Socketu místo toho obyčejného
+                SSLSocketFactory sslsf = sslContext.getSocketFactory();
+                socket = sslsf.createSocket(HOST, PORT);
+
+                // Klasické streamy pro čtení a zápis, ty zůstávají stejné
+                out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
+                in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new IOException("Nepodařilo se navázat zabezpečené spojení: " + e.getMessage());
+            }
         }
     }
 

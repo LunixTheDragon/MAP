@@ -3,6 +3,8 @@ package org.example;
 import utils.Conn;
 import utils.SecurityUtils;
 
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -24,16 +26,26 @@ public class Server {
         int maxClients = Runtime.getRuntime().availableProcessors() * 2;
         ExecutorService pool = Executors.newFixedThreadPool(maxClients);
 
-        try(ServerSocket serverSocket= new ServerSocket(PORT)){
-            while(true){
-                System.out.println("Waiting for Client");
-                Socket clientSocket = serverSocket.accept();
-                System.out.println("Klient připojen: " + clientSocket.getRemoteSocketAddress());
-                pool.execute(() -> handleClient(clientSocket, db));
+        //cesta k certifikatum na SSL
+        System.setProperty("javax.net.ssl.keyStore", "src/main/resources/server.jks");
+        System.setProperty("javax.net.ssl.keyStorePassword", "tajneheslo");
+
+        try {
+            // Vytvoření SSL Server Socketu
+            SSLServerSocketFactory sslssf = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+            try(SSLServerSocket serverSocket = (SSLServerSocket) sslssf.createServerSocket(PORT)) {
+
+                while(true){
+                    System.out.println("Waiting for SSL Client");
+                    Socket clientSocket = serverSocket.accept();
+                    System.out.println("Zabezpečený klient připojen: " + clientSocket.getRemoteSocketAddress());
+                    pool.execute(() -> handleClient(clientSocket, db));
+                }
             }
-        }catch(IOException e){
+        } catch(IOException e){
             System.out.println("Server error: " + e.getMessage());
         }
+
     }
 
     private static void handleClient(Socket clientSocket, Conn db) {
