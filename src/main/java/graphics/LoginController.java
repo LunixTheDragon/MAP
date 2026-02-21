@@ -2,6 +2,7 @@ package graphics;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import org.example.NetworkManager;
@@ -15,50 +16,88 @@ public class LoginController {
 
     @FXML private TextField usernameField;
     @FXML private PasswordField passwordField;
+    @FXML private TextField emailField;
+    @FXML private Button actionBtn;
+    @FXML private Button switchModeBtn;
+
+    private boolean isLogged = true;
+
+    // Metoda pro přepnutí UI (zvětšení/zmenšení okna)
+    @FXML
+    protected void switchMode() {
+        isLogged = !isLogged; // Přepnutí stavu
+
+        if (isLogged) {
+            emailField.setVisible(false);
+            emailField.setManaged(false);
+            actionBtn.setText("PŘIHLÁSIT SE");
+            switchModeBtn.setText("Nemáte účet? Zaregistrujte se");
+        } else {
+            emailField.setVisible(true);
+            emailField.setManaged(true);
+            actionBtn.setText("ZAREGISTROVAT SE");
+            switchModeBtn.setText("Už máte účet? Přihlaste se");
+        }
+
+        //adjusting to what is inside
+        Stage stage = (Stage) actionBtn.getScene().getWindow();
+        stage.sizeToScene();
+    }
+
 
     @FXML
-    protected void handleLogin() {
+    protected void handleSubmit() {
         String username = usernameField.getText();
         String password = passwordField.getText();
-        System.out.println("Zkouším přihlásit uživatele: " + username);
 
         // Zablokujeme pole během načítání
         usernameField.setDisable(true);
         passwordField.setDisable(true);
+        emailField.setDisable(true);
+        actionBtn.setDisable(true);
 
-        // Vlákno na pozadí, které neruší grafiku
         new Thread(() -> {
-            boolean success = NetworkManager.getInstance().login(username, password);
+            boolean success;
+            if (isLogged) {
+                // Login
+                success = NetworkManager.getInstance().login(username, password);
+            } else {
+                // signIn
+                String email = emailField.getText();
+                success = NetworkManager.getInstance().register(username, password, email);
+            }
 
-            // Zpět do grafického (hlavního) vlákna
+            // waiting for thread to finish task
             Platform.runLater(() -> {
                 if (success) {
-                    System.out.println("Přihlášení úspěšné!");
-                    goToChatScreen(); // Přepnutí grafiky!
+                    if (isLogged) {
+                        System.out.println("Přihlášení úspěšné!");
+                        goToChatScreen();
+                    } else {
+                        System.out.println("Registrace úspěšná!");
+                        emailField.clear();
+                        switchMode();
+                    }
                 } else {
-                    System.out.println("Chybné jméno nebo heslo.");
-                    // Tady bys ideálně zobrazil nějaký červený text "Chyba přihlášení"
-                    usernameField.setDisable(false);
-                    passwordField.setDisable(false);
+                    System.out.println(isLogged ? "Chyba přihlášení." : "Chyba registrace.");
                 }
+
+
+                usernameField.setDisable(false);
+                passwordField.setDisable(false);
+                emailField.setDisable(false);
+                actionBtn.setDisable(false);
             });
         }).start();
     }
 
-    // Metoda pro přidání další grafiky (přepnutí scény)
     private void goToChatScreen() {
         try {
-            // Načteme novou grafiku chatu
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/graphics/chat.fxml"));
             Parent root = loader.load();
-
-            // Získáme aktuální okno podle jednoho z prvků (např. textového pole)
             Stage stage = (Stage) usernameField.getScene().getWindow();
-
-            // Nastavíme oknu novou scénu
             stage.setScene(new Scene(root, 600, 400));
             stage.setTitle("Chat Room - " + usernameField.getText());
-
         } catch (Exception e) {
             e.printStackTrace();
         }

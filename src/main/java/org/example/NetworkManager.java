@@ -4,6 +4,7 @@ import utils.SecurityUtils;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 
 public class NetworkManager {
@@ -62,5 +63,33 @@ public class NetworkManager {
             e.printStackTrace();
         }
         return false;
+    }
+    public boolean register(String name, String pass, String email) {
+        try {
+            connect();
+
+            //generating keys
+            java.security.KeyPair keyPair = SecurityUtils.RSAUtils.generateKeyPair();
+            String pubKeyStr = SecurityUtils.RSAUtils.keyToString(keyPair.getPublic());
+            String privKeyStr = SecurityUtils.RSAUtils.keyToString(keyPair.getPrivate());
+
+            try (FileWriter fw = new FileWriter(name + "_private.key")) {
+                fw.write(privKeyStr);
+            }
+            // Vytvoření hashe a odeslání na server
+            String securityHash = SecurityUtils.createUserSecurityHash(privKeyStr, pubKeyStr);
+            out.write("REG:" + name + ":" + pass + ":" + email + ":" + pubKeyStr + ":" + securityHash);
+            out.newLine();
+            out.flush();
+
+            String response = in.readLine();
+            return "REG_OK".equals(response);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

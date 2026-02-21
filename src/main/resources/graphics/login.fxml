@@ -21,7 +21,10 @@
         <TextField fx:id="usernameField" promptText="Uživatelské jméno" styleClass="input-field" maxWidth="Infinity"/>
         <PasswordField fx:id="passwordField" promptText="Heslo" styleClass="input-field" maxWidth="Infinity"/>
 
-        <Button fx:id="loginBtn" maxWidth="Infinity" onAction="#handleLogin" styleClass="primary-btn" text="PŘIHLÁSIT SE" />
-        <Button styleClass="link-btn" text="Nemáte účet? Zaregistrujte se" />
+        <TextField fx:id="emailField" promptText="Email" styleClass="input-field" maxWidth="Infinity" visible="false" managed="false"/>
+
+        <Button fx:id="actionBtn" maxWidth="Infinity" onAction="#handleSubmit" styleClass="primary-btn" text="PŘIHLÁSIT SE" />
+
+        <Button fx:id="switchModeBtn" styleClass="link-btn" text="Nemáte účet? Zaregistrujte se" onAction="#switchMode"/>
     </VBox>
 </VBox>
