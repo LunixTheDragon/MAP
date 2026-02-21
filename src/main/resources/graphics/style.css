@@ -1,89 +1,136 @@
-/* --- TELEGRAM LIQUID GLASS THEME --- */
+/* --- APPLE MODERN AESTHETIC --- */
 
-/* Plynulé gradientní pozadí pro celou aplikaci */
+/*
+   ŽIVÉ POZADÍ
+   Používáme komplexní mesh gradient, který působí moderně a organicky.
+   Vypadá to jako velmi rozmazané barevné světla.
+*/
+.root {
+    -fx-background-color:
+            radial-gradient(focus-angle 45deg, focus-distance 20%, center 25% 25%, radius 50%, rgba(120, 175, 250, 0.4), transparent),
+            radial-gradient(focus-angle 135deg, focus-distance 20%, center 75% 75%, radius 50%, rgba(240, 150, 220, 0.4), transparent),
+            linear-gradient(to bottom right, #e0eafc, #cfdef3);
+}
+
+/* Nastavení globálního fontu pro čistý vzhled */
+.label, .button, .text-field, .password-field, .text-area {
+    -fx-font-family: 'Segoe UI Semibold', 'Helvetica Neue', 'Roboto', sans-serif;
+}
+
+/* HLAVNÍ KONTEJNER */
 .main-container {
-    -fx-background-color: linear-gradient(to bottom right, #a1c4fd, #c2e9fb);
     -fx-alignment: center;
 }
 
-/* Skleněná karta (Glassmorphism) */
-.glass-card, .glass-panel {
-    -fx-background-color: rgba(255, 255, 255, 0.6);
-    -fx-background-radius: 16px;
-    -fx-border-color: rgba(255, 255, 255, 0.8);
-    -fx-border-width: 1.5px;
-    -fx-border-radius: 16px;
-    -fx-effect: dropshadow(three-pass-box, rgba(0, 100, 200, 0.15), 25, 0, 0, 10);
+/*
+   ULTRA-MODERNÍ SKLENĚNÁ KARTA
+   Klíčem je vysoká průhlednost, obrovské zaoblení rohů a velmi jemný, velký stín.
+   Vypadá to, že karta levituje vysoko nad pozadím.
+*/
+.modern-card {
+    -fx-background-color: rgba(255, 255, 255, 0.85); /* Mléčně bílá */
+    -fx-background-radius: 30px; /* Extrémní zaoblení ala Apple */
+    -fx-border-radius: 30px;
+    /* Velmi jemný, rozptýlený stín pro hloubku */
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 50, 0, 0, 15);
+    -fx-padding: 40px;
 }
 
-/* Nadpisy */
+/* NADPISY */
 .header-label {
-    -fx-font-size: 28px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #2b5278; /* Tmavá modrá typická pro Telegram texty */
-    -fx-padding: 0 0 15 0;
+    -fx-font-size: 32px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #1d1d1f; /* Téměř černá */
     -fx-alignment: center;
+    -fx-padding: 0 0 20 0;
 }
 
-/* Textové chybové zprávy */
+/* CHYBOVÉ HLÁŠKY */
 .error-label {
     -fx-font-size: 13px;
     -fx-font-weight: bold;
-    -fx-text-fill: #ef4444; /* Výchozí červená */
-    -fx-padding: 5px 0;
+    -fx-text-fill: #ff3b30; /* Apple červená */
+    -fx-padding: 10px 0;
 }
 
-/* Skleněná vstupní pole */
+/*
+   MODERNÍ VSTUPNÍ POLE
+   Žádné okraje v klidovém stavu, jen šedé pozadí.
+   Po kliknutí se rozsvítí modře.
+*/
 .input-field {
     -fx-font-size: 14px;
-    -fx-padding: 12px 15px;
-    -fx-background-radius: 12px;
-    -fx-border-radius: 12px;
-    -fx-border-color: rgba(255, 255, 255, 0.9);
+    -fx-padding: 15px 18px;
+    -fx-background-radius: 14px;
+    -fx-border-radius: 14px;
+    -fx-background-color: #f5f5f7; /* Světle šedá */
     -fx-border-width: 2px;
-    -fx-background-color: rgba(255, 255, 255, 0.5);
-    -fx-text-fill: #1e293b;
-    -fx-prompt-text-fill: #64748b;
+    -fx-border-color: transparent;
+    -fx-text-fill: #1d1d1f;
+    -fx-prompt-text-fill: #86868b;
 }
 .input-field:focused {
-    -fx-border-color: #3390ec; /* Telegram modrá */
-    -fx-background-color: rgba(255, 255, 255, 0.9);
+    -fx-background-color: white;
+    -fx-border-color: #007AFF; /* Apple modrá */
+    /* Jemná modrá záře při fokusu */
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 122, 255, 0.25), 10, 0, 0, 0);
 }
 
-/* Chat okno (TextArea) */
-.glass-chat-area {
-    -fx-background-color: transparent;
-    -fx-control-inner-background: rgba(255, 255, 255, 0.4);
-    -fx-text-fill: #1e293b;
-    -fx-font-size: 15px;
-    -fx-background-radius: 12px;
-    -fx-padding: 5px;
-}
-.glass-chat-area .content {
-    -fx-background-color: transparent;
-}
-
-/* Tlačítka */
+/* HLAVNÍ TLAČÍTKO (Apple Blue) */
 .primary-btn {
-    -fx-background-color: #3390ec; /* Telegram modrá */
+    -fx-background-color: #007AFF;
     -fx-text-fill: white;
-    -fx-font-size: 15px;
+    -fx-font-size: 16px;
     -fx-font-weight: bold;
-    -fx-padding: 12px;
-    -fx-background-radius: 12px;
+    -fx-padding: 15px;
+    -fx-background-radius: 16px;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(three-pass-box, rgba(51, 144, 236, 0.4), 15, 0, 0, 5);
+    /* Stín v barvě tlačítka */
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 122, 255, 0.4), 20, 0, 0, 8);
 }
 .primary-btn:hover {
-    -fx-background-color: #2b7cb9;
+    -fx-background-color: #006ce6; /* Trochu tmavší při najetí */
+    -fx-scale-x: 1.02; /* Jemné zvětšení - animace */
+    -fx-scale-y: 1.02;
+}
+.primary-btn:pressed {
+    -fx-scale-x: 0.98; /* Zmenšení při kliku */
+    -fx-scale-y: 0.98;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 122, 255, 0.2), 10, 0, 0, 4);
 }
 
+/* ODKAZOVÉ TLAČÍTKO */
 .link-btn {
     -fx-background-color: transparent;
-    -fx-text-fill: #3390ec;
+    -fx-text-fill: #007AFF;
     -fx-cursor: hand;
     -fx-font-weight: bold;
+    -fx-font-size: 13px;
 }
 .link-btn:hover {
     -fx-underline: true;
+    -fx-text-fill: #006ce6;
+}
+
+/* --- SPECIFICKÉ PRO CHAT --- */
+
+/* Panely v chatu budou více průhledné */
+.glass-panel {
+    -fx-background-color: rgba(255, 255, 255, 0.75);
+    -fx-background-radius: 24px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.08), 30, 0, 0, 10);
+}
+
+/* Samotné textové pole chatu */
+.modern-chat-area {
+    -fx-background-color: transparent;
+    /* Vnitřek je jen lehce zabarvený */
+    -fx-control-inner-background: rgba(245, 245, 247, 0.6);
+    -fx-text-fill: #1d1d1f;
+    -fx-font-size: 15px;
+    -fx-background-radius: 18px;
+    -fx-padding: 10px;
+}
+.modern-chat-area .content {
+    -fx-background-color: transparent;
 }

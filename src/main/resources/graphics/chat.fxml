@@ -8,36 +8,39 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane styleClass="main-container" stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="graphics.ChatController">
+<BorderPane stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="graphics.ChatController">
 
     <padding>
-        <Insets top="15" right="15" bottom="15" left="15"/>
+        <Insets top="25" right="25" bottom="25" left="25"/>
     </padding>
 
     <top>
-        <HBox alignment="CENTER_LEFT" spacing="10" styleClass="glass-panel" style="-fx-padding: 15;">
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="glass-panel" style="-fx-padding: 18;">
             <BorderPane.margin>
-                <Insets bottom="15.0" />
+                <Insets bottom="20.0" />
             </BorderPane.margin>
-            <Label style="-fx-font-weight: bold; -fx-text-fill: #64748b; -fx-font-size: 14px;" text="Připojen jako:" />
-            <Label fx:id="currentUserLabel" style="-fx-font-weight: bold; -fx-text-fill: #2b5278; -fx-font-size: 16px;" text="User" />
+            <Label style="-fx-font-size: 24px;" text="👤" />
+            <VBox alignment="CENTER_LEFT">
+                <Label style="-fx-font-weight: bold; -fx-text-fill: #1d1d1f; -fx-font-size: 16px;" text="Připojen jako" />
+                <Label fx:id="currentUserLabel" style="-fx-font-weight: bold; -fx-text-fill: #007AFF; -fx-font-size: 18px;" text="User" />
+            </VBox>
         </HBox>
     </top>
 
     <center>
-        <VBox styleClass="glass-panel" style="-fx-padding: 15;">
+        <VBox styleClass="glass-panel" style="-fx-padding: 20;">
             <BorderPane.margin>
-                <Insets bottom="15.0" />
+                <Insets bottom="20.0" />
             </BorderPane.margin>
-            <TextArea fx:id="chatArea" editable="false" wrapText="true" VBox.vgrow="ALWAYS" styleClass="glass-chat-area" />
+            <TextArea fx:id="chatArea" editable="false" wrapText="true" VBox.vgrow="ALWAYS" styleClass="modern-chat-area" />
         </VBox>
     </center>
 
     <bottom>
-        <HBox spacing="10" alignment="CENTER" styleClass="glass-panel" style="-fx-padding: 15;">
-            <TextField fx:id="targetUserField" promptText="Příjemce..." prefWidth="120" styleClass="input-field" />
+        <HBox spacing="15" alignment="CENTER" styleClass="glass-panel" style="-fx-padding: 18;">
+            <TextField fx:id="targetUserField" promptText="Příjemce..." prefWidth="140" styleClass="input-field" />
             <TextField fx:id="messageField" promptText="Napiš zprávu..." HBox.hgrow="ALWAYS" styleClass="input-field" onAction="#handleSendMessage" />
-            <Button onAction="#handleSendMessage" styleClass="primary-btn" text="Odeslat" />
+            <Button onAction="#handleSendMessage" styleClass="primary-btn" text="Odeslat" style="-fx-padding: 15 25;"/>
         </HBox>
     </bottom>
 

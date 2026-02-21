@@ -11,22 +11,24 @@
         <Insets bottom="40.0" left="40.0" right="40.0" top="40.0"/>
     </padding>
 
-    <VBox alignment="CENTER" spacing="15.0" styleClass="card" maxWidth="300">
-        <padding>
-            <Insets bottom="30.0" left="20.0" right="20.0" top="30.0"/>
-        </padding>
+    <VBox fx:id="loginCard" alignment="CENTER" spacing="18.0" styleClass="modern-card" maxWidth="360">
 
-        <Label styleClass="header-label" text="💬 Cricket" />
+        <Label styleClass="header-label" text="Vítejte zpět" />
+        <Label style="-fx-text-fill: #86868b; -fx-font-size: 14px; -fx-padding: -10 0 10 0;" text="Přihlaste se pro pokračování" />
 
         <TextField fx:id="usernameField" promptText="Uživatelské jméno" styleClass="input-field" maxWidth="Infinity"/>
         <PasswordField fx:id="passwordField" promptText="Heslo" styleClass="input-field" maxWidth="Infinity"/>
 
-        <TextField fx:id="emailField" promptText="Email" styleClass="input-field" maxWidth="Infinity" visible="false" managed="false"/>
+        <TextField fx:id="emailField" promptText="Emailová adresa" styleClass="input-field" maxWidth="Infinity" visible="false" managed="false"/>
 
         <Label fx:id="errorLabel" styleClass="error-label" text="" wrapText="true" textAlignment="CENTER"/>
 
-        <Button fx:id="actionBtn" maxWidth="Infinity" onAction="#handleSubmit" styleClass="primary-btn" text="PŘIHLÁSIT SE" />
-
-        <Button fx:id="switchModeBtn" styleClass="link-btn" text="Nemáte účet? Zaregistrujte se" onAction="#switchMode"/>
+        <VBox spacing="15">
+            <VBox.margin>
+                <Insets top="10.0" />
+            </VBox.margin>
+            <Button fx:id="actionBtn" maxWidth="Infinity" onAction="#handleSubmit" styleClass="primary-btn" text="Přihlásit se" />
+            <Button fx:id="switchModeBtn" styleClass="link-btn" text="Nemáte účet? Zaregistrujte se" onAction="#switchMode"/>
+        </VBox>
     </VBox>
 </VBox>
