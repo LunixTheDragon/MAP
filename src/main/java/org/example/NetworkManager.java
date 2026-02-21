@@ -6,6 +6,10 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import javax.crypto.SecretKey;
+import java.security.PublicKey;
+import java.util.ArrayList;
+import java.util.List;
 
 public class NetworkManager {
     private static final String HOST = "127.0.0.1";
@@ -91,6 +95,107 @@ public class NetworkManager {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public SecretKey AESScryptingForChat(String user, String receiver, PrivateKey myPrivKey) throws Exception {
+        File aesFile = new File("chat_" + user + "_" + receiver +".key");
+        if (aesFile.exists()) {
+            String aesKey = java.nio.file.Files.readString(aesFile.toPath());
+            return SecurityUtils.AESUtils.stringToKey(aesKey);
+        }
+
+        out.write("JOIN_ROOM:" + user + ":" + receiver);
+        out.newLine();
+        out.flush();
+        String response = in.readLine();
+
+        if (response != null && response.startsWith("ROOM_OK:")){
+            String encryptedAesKey = response.split(":")[1];
+            String decryptedAesKey = SecurityUtils.RSAUtils.decryptKey(encryptedAesKey, myPrivKey);
+            SecretKey chatKey = SecurityUtils.AESUtils.stringToKey(decryptedAesKey);
+
+            try (FileWriter fw = new FileWriter(aesFile)) {
+                fw.write(SecurityUtils.AESUtils.keyToString(chatKey));
+            }
+            return chatKey;
+        } else if ("ROOM_MISSING".equals(response)) {
+            SecretKey chatKey = SecurityUtils.AESUtils.generateAESKey();
+            String chatKeyStr = SecurityUtils.AESUtils.keyToString(chatKey);
+
+            out.write("GET_PUBKEY:" + receiver);
+            out.newLine();
+            out.flush();
+            String pubKeyResp = in.readLine();
+
+            if (pubKeyResp == null || !pubKeyResp.startsWith("PUBKEY:")){
+                throw new Exception("Uživatel " + receiver + " neexistuje.");
+            }
+            PublicKey receiverPubKey = SecurityUtils.RSAUtils.getPublicKeyFromString(pubKeyResp.split(":")[1]);
+
+            out.write("GET_PUBKEY:" + user);
+            out.newLine();
+            out.flush();
+            String userPubKeyResp = in.readLine();
+            PublicKey userPubKey = SecurityUtils.RSAUtils.getPublicKeyFromString(userPubKeyResp.split(":")[1]);
+
+            String encryptedForReceiver = SecurityUtils.RSAUtils.encryptKey(chatKeyStr, receiverPubKey);
+            String encryptedForUser = SecurityUtils.RSAUtils.encryptKey(chatKeyStr, userPubKey);
+
+            out.write("CREATE_ROOM:" + user + ":" + receiver + ":" + encryptedForUser + ":" + encryptedForReceiver);
+            out.newLine();
+            out.flush();
+            String createResponse = in.readLine();
+
+            if (!"CREATE_ROOM_OK".equals(createResponse)) {
+                throw new Exception("Server odmítl vytvořit místnost.");
+            }
+
+            try (FileWriter fw = new FileWriter(aesFile)) {
+                fw.write(chatKeyStr);
+            }
+            return chatKey;
+        }
+        throw new Exception("Chyba komunikace se serverem.");
+    }
+
+    public List<String> fetchHistory(String user, String receiver, SecretKey chatKey) throws Exception {
+        List<String> history = new ArrayList<>();
+        out.write("HISTORY:" + user + ":" + receiver);
+        out.newLine();
+        out.flush();
+
+        String line;
+        while ((line = in.readLine()) != null) {
+            if (line.equals("HIST_END")){
+                break;
+            }
+            if (line.startsWith("HIST:")){
+                String[] parts = line.split(":", 3);
+                String sender = parts[1];
+                String encryptedMsg = parts[2];
+                try{
+                    String decryptedMsg = SecurityUtils.AESUtils.decrypt(encryptedMsg, chatKey);
+                    if (sender.equals(user)) {
+                        history.add("Ty: " + decryptedMsg);
+                    } else {
+                        history.add(sender + ": " + decryptedMsg);
+                    }
+                }catch (Exception e) {
+                    history.add(sender + ": [Šifrovaná zpráva - nelze přečíst]");
+                }
+            }
+        }
+        return history;
+    }
+
+    // 3. Odeslání nové šifrované zprávy
+    public boolean sendChatMessage(String me, String receiver, String msg, SecretKey chatKey) throws Exception {
+        String encryptedMsg = SecurityUtils.AESUtils.encrypt(msg, chatKey);
+        out.write("MSG:" + me + ":" + receiver + ":" + encryptedMsg);
+        out.newLine();
+        out.flush();
+        String resp = in.readLine();
+        return "MSG OK".equals(resp);
     }
 
     public String getLoggedUser() {

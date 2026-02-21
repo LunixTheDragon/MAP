@@ -37,11 +37,18 @@
     </center>
 
     <bottom>
-        <HBox spacing="15" alignment="CENTER" styleClass="glass-panel" style="-fx-padding: 18;">
-            <TextField fx:id="targetUserField" promptText="Příjemce..." prefWidth="140" styleClass="input-field" />
-            <TextField fx:id="messageField" promptText="Napiš zprávu..." HBox.hgrow="ALWAYS" styleClass="input-field" onAction="#handleSendMessage" />
-            <Button onAction="#handleSendMessage" styleClass="primary-btn" text="Odeslat" style="-fx-padding: 15 25;"/>
-        </HBox>
+        <VBox spacing="10" styleClass="glass-panel" style="-fx-padding: 18;">
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <TextField fx:id="targetUserField" promptText="Příjemce..." prefWidth="140" styleClass="input-field" />
+                <Button onAction="#handleLoadChat" styleClass="primary-btn" text="Otevřít chat" style="-fx-padding: 10 20; -fx-background-color: #34c759;"/>
+                <Button onAction="#handleLoadChat" styleClass="primary-btn" text="🔄 Obnovit zprávy" style="-fx-padding: 10 20; -fx-background-color: #8e8e93;"/>
+            </HBox>
+
+            <HBox spacing="15" alignment="CENTER">
+                <TextField fx:id="messageField" promptText="Napiš zprávu..." HBox.hgrow="ALWAYS" styleClass="input-field" onAction="#handleSendMessage" disable="true"/>
+                <Button fx:id="sendBtn" onAction="#handleSendMessage" styleClass="primary-btn" text="Odeslat" style="-fx-padding: 12 25;" disable="true"/>
+            </HBox>
+        </VBox>
     </bottom>
 
 </BorderPane>

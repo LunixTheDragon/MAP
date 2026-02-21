@@ -147,7 +147,7 @@ public class LoginController {
             fadeOut.setFromValue(1);
             fadeOut.setToValue(0);
             fadeOut.setOnFinished(event -> {
-                stage.setScene(new Scene(root, 800, 600));
+                stage.setScene(new Scene(root, 1000, 700));
                 stage.setTitle("Chat - " + usernameField.getText());
                 stage.centerOnScreen();
             });

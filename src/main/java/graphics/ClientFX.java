@@ -12,7 +12,7 @@ public class ClientFX extends Application {
         // Načteme FXML soubor (cestu uprav podle své struktury složek)
         FXMLLoader fxmlLoader = new FXMLLoader(ClientFX.class.getResource("/graphics/login.fxml"));
 
-        Scene scene = new Scene(fxmlLoader.load(), 350, 450);
+        Scene scene = new Scene(fxmlLoader.load(), 600, 600);
 
         stage.setTitle("Modern Chat");
         stage.setScene(scene);
