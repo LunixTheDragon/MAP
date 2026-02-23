@@ -15,6 +15,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.example.NetworkManager;
 import utils.SecurityUtils;
+import java.util.prefs.Preferences;
 
 import javax.crypto.SecretKey;
 import java.io.File;
@@ -28,6 +29,9 @@ public class ChatController {
     @FXML private TextField targetUserField;
     @FXML private TextField messageField;
     @FXML private Button sendBtn;
+    @FXML private Button themeBtn;
+    private Preferences prefs; // system memorz for saving preferencies on dark/light mode
+
 
     private SecretKey currentChatKey;
     private String currentReceiver;
@@ -36,6 +40,15 @@ public class ChatController {
 
     @FXML
     public void initialize() {
+        prefs = Preferences.userNodeForPackage(ChatController.class);
+        isDarkMode = prefs.getBoolean("isDarkMode", false); //false is default
+
+        Platform.runLater(() -> {
+            if (isDarkMode) {
+                chatArea.getScene().getRoot().getStyleClass().add("dark-mode");
+                themeBtn.setText("☀️"); // Změníme ikonu na sluníčko
+        }});
+
         String currentUser = org.example.NetworkManager.getInstance().getLoggedUser();
         currentUserLabel.setText(currentUser != null ? currentUser : "Neznámý uživatel");        // Tato metoda se zavolá automaticky po načtení FXML
         // Zde budeme později inicializovat vlákno pro čtení příchozích zpráv ze sítě
@@ -180,11 +193,22 @@ public class ChatController {
     @FXML
     protected void toggleDarkMode() {
         isDarkMode = !isDarkMode;
+        prefs.putBoolean("darkMode", isDarkMode); //windows / mac registers
+
         if (isDarkMode) {
             chatArea.getScene().getRoot().getStyleClass().add("dark-mode");
+            themeBtn.setText("☀️");
         } else {
             chatArea.getScene().getRoot().getStyleClass().remove("dark-mode");
+            themeBtn.setText("🌙");
         }
+    }
+
+    @FXML
+    protected void handleProfileSettings(){
+        // Zatím jen informativní výpis do chatu, později sem přidáme otevření nového malého okna
+        chatArea.appendText(">> Otevírám nastavení profilu... (Zde brzy půjde změnit avatar a heslo)\n");
+        // Zde v budoucnu zavoláme nové FXML okno (např. profile.fxml)
     }
 
     @FXML

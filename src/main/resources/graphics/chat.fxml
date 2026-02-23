@@ -18,27 +18,28 @@
     </padding>
 
     <top>
-        <VBox spacing="15">
+        <HBox alignment="CENTER" styleClass="glass-panel" style="-fx-padding: 10 20 10 15;">
             <BorderPane.margin>
                 <Insets bottom="20.0" />
             </BorderPane.margin>
 
-            <MenuBar styleClass="apple-menu-bar">
-                <Menu text="⚙️ Nastavení">
-                    <MenuItem text="💬 Nová konverzace" onAction="#handleNewChat"/>
-                    <MenuItem text="🌙 Přepnout Tmavý/Světlý režim" onAction="#toggleDarkMode"/>
-                    <MenuItem text="🚪 Odhlásit se" onAction="#handleSignOut"/>
-                </Menu>
-            </MenuBar>
-
-            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="glass-panel" style="-fx-padding: 15;">
-                <Label style="-fx-font-size: 24px;" text="👤" />
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="profile-area" onMouseClicked="#handleProfileSettings">
+                <Label style="-fx-font-size: 32px;" text="🧑‍💻" />
                 <VBox alignment="CENTER_LEFT">
-                    <Label styleClass="dynamic-text" style="-fx-font-weight: bold; -fx-font-size: 16px;" text="Připojen jako" />
+                    <Label styleClass="dynamic-text" style="-fx-font-weight: 800; -fx-font-size: 13px; -fx-text-fill: #86868b;" text="MŮJ PROFIL" />
                     <Label fx:id="currentUserLabel" style="-fx-font-weight: bold; -fx-text-fill: #007AFF; -fx-font-size: 18px;" text="User" />
                 </VBox>
             </HBox>
-        </VBox>
+
+            <javafx.scene.layout.Region HBox.hgrow="ALWAYS" />
+
+            <HBox alignment="CENTER_RIGHT" spacing="5">
+                <Button styleClass="icon-btn" text="➕ Nový chat" onAction="#handleNewChat"/>
+                <Button fx:id="themeBtn" styleClass="icon-btn" text="🌙" onAction="#toggleDarkMode"/>
+                <Button styleClass="icon-btn" text="⚙️ Nastavení" onAction="#handleProfileSettings"/>
+                <Button styleClass="icon-btn, logout-btn" text="🚪 Odhlásit" onAction="#handleSignOut"/>
+            </HBox>
+        </HBox>
     </top>
 
     <center>

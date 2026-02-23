@@ -134,15 +134,51 @@
 .modern-chat-area .content {
     -fx-background-color: transparent;
 }
-/* --- HORNÍ MENU BAR --- */
-.apple-menu-bar {
-    -fx-background-color: rgba(255, 255, 255, 0.4);
-    -fx-background-radius: 12px;
-    -fx-padding: 2px 5px;
+/* --- MODERNÍ HORNÍ LIŠTA --- */
+
+/* Klikací oblast profilu */
+.profile-area {
+    -fx-cursor: hand;
+    -fx-padding: 5px 15px 5px 5px;
+    -fx-background-radius: 14px;
+    -fx-transition: -fx-background-color 0.2s;
 }
-.apple-menu-bar .menu {
+.profile-area:hover {
+    -fx-background-color: rgba(0, 0, 0, 0.05);
+}
+.dark-mode .profile-area:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Moderní ikonková tlačítka */
+.icon-btn {
+    -fx-background-color: transparent;
+    -fx-font-size: 14px;
     -fx-font-weight: bold;
-    -fx-padding: 5px 10px;
+    -fx-text-fill: #1d1d1f;
+    -fx-cursor: hand;
+    -fx-padding: 8px 12px;
+    -fx-background-radius: 10px;
+}
+.icon-btn:hover {
+    -fx-background-color: rgba(0, 0, 0, 0.06);
+}
+.dark-mode .icon-btn {
+    -fx-text-fill: #e0e0e0;
+}
+.dark-mode .icon-btn:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Tlačítko odhlásit vždy trochu do červena */
+.logout-btn {
+    -fx-text-fill: #ff3b30;
+}
+.dark-mode .logout-btn {
+    -fx-text-fill: #ff453a;
+}
+.logout-btn:hover {
+    -fx-background-color: rgba(255, 59, 48, 0.1);
 }
 
 /* --- TMAVÝ REŽIM (DARK MODE) --- */
