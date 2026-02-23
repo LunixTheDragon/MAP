@@ -14,7 +14,7 @@ public class ClientFX extends Application {
 
         Scene scene = new Scene(fxmlLoader.load(), 600, 600);
 
-        stage.setTitle("Modern Chat");
+        stage.setTitle("Cricket");
         stage.setScene(scene);
         stage.show();
     }

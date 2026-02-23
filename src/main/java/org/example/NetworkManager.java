@@ -229,6 +229,9 @@ public class NetworkManager {
         String resp = in.readLine();
         return "MSG OK".equals(resp);
     }
+    public void logout() {
+        this.loggedUser = null;
+    }
 
     public String getLoggedUser() {
         return loggedUser;

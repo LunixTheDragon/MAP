@@ -134,3 +134,51 @@
 .modern-chat-area .content {
     -fx-background-color: transparent;
 }
+/* --- HORNÍ MENU BAR --- */
+.apple-menu-bar {
+    -fx-background-color: rgba(255, 255, 255, 0.4);
+    -fx-background-radius: 12px;
+    -fx-padding: 2px 5px;
+}
+.apple-menu-bar .menu {
+    -fx-font-weight: bold;
+    -fx-padding: 5px 10px;
+}
+
+/* --- TMAVÝ REŽIM (DARK MODE) --- */
+.dark-mode.root {
+    -fx-background-color:
+            radial-gradient(focus-angle 45deg, focus-distance 20%, center 25% 25%, radius 50%, rgba(40, 60, 100, 0.8), transparent),
+            radial-gradient(focus-angle 135deg, focus-distance 20%, center 75% 75%, radius 50%, rgba(100, 40, 80, 0.8), transparent),
+            linear-gradient(to bottom right, #1a1a2e, #16213e);
+}
+
+.dark-mode .modern-card, .dark-mode .glass-panel {
+    -fx-background-color: rgba(30, 30, 40, 0.75);
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.4), 30, 0, 0, 10);
+    -fx-border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Úprava textů ve tmavém režimu */
+.dark-mode .header-label, .dark-mode .dynamic-text {
+    -fx-text-fill: #e0e0e0;
+}
+
+/* Úprava textových polí a chatu ve tmavém režimu */
+.dark-mode .input-field {
+    -fx-background-color: rgba(50, 50, 60, 0.8);
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #888888;
+}
+
+.dark-mode .modern-chat-area {
+    -fx-control-inner-background: rgba(40, 40, 50, 0.6);
+    -fx-text-fill: #e0e0e0;
+}
+
+.dark-mode .apple-menu-bar {
+    -fx-background-color: rgba(50, 50, 60, 0.5);
+}
+.dark-mode .apple-menu-bar .label {
+    -fx-text-fill: #e0e0e0;
+}

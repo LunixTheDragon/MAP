@@ -1,11 +1,18 @@
 package graphics;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
+import javafx.util.Duration;
 import org.example.NetworkManager;
 import utils.SecurityUtils;
 
@@ -24,6 +31,8 @@ public class ChatController {
 
     private SecretKey currentChatKey;
     private String currentReceiver;
+    private Timeline autoRefreshTimeline; // javaFx class for refreshing
+    private boolean isDarkMode = false;
 
     @FXML
     public void initialize() {
@@ -36,6 +45,45 @@ public class ChatController {
         //writing is blocked until secured connection happen
         messageField.setDisable(true);
         sendBtn.setDisable(true);
+        setupAutoRefresh();
+    }
+
+    private void setupAutoRefresh(){
+        autoRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), event -> {
+            if (currentChatKey != null && currentReceiver != null) {
+                reloadHistoryInBack();
+            }
+        }));
+        autoRefreshTimeline.setCycleCount(Timeline.INDEFINITE);
+        autoRefreshTimeline.play();
+    }
+
+    @FXML
+    protected void handleManualRefresh(){
+        if (currentChatKey != null && currentReceiver != null) {
+            reloadHistoryInBack();
+        }
+    }
+
+    private void reloadHistoryInBack(){
+        String user = NetworkManager.getInstance().getLoggedUser();
+        new Thread(() -> {
+            try {
+                List<String> history  = NetworkManager.getInstance().fetchHistory(user, currentReceiver, currentChatKey);
+                Platform.runLater(() -> {
+                    StringBuilder sb = new StringBuilder("--- 🔒 Zabezpečený chat s " + currentReceiver + " ---\n");
+                    for (String s : history) {
+                        sb.append(s).append("\n");
+                    }
+                    if (!chatArea.getText().equals(sb.toString())){
+                        chatArea.setText(sb.toString());
+                        chatArea.positionCaret(chatArea.getText().length()); //
+                    }
+
+                });
+            } catch (Exception e) {
+            }
+        }).start();
     }
 
     @FXML
@@ -65,22 +113,15 @@ public class ChatController {
                 currentChatKey = NetworkManager.getInstance().AESScryptingForChat(user, receiver, userPrivKey);
                 currentReceiver = receiver;
 
-                // 3. download history
-                List<String> history = NetworkManager.getInstance().fetchHistory(user, receiver, currentChatKey);
-
-
                 //return to graphics
                 Platform.runLater(() -> {
-                    chatArea.clear();
-                    chatArea.appendText("Zabezpečený chat s " + receiver + " ---\n");
-                    for (String msg : history) {
-                        chatArea.appendText(msg + "\n");
-                    }
                     messageField.setDisable(false);
                     sendBtn.setDisable(false);
                     targetUserField.setDisable(false);
                     messageField.requestFocus(); // Kurzor automaticky skočí do pole
                 });
+
+                reloadHistoryInBack();
             } catch (Exception e) {
                 Platform.runLater(() -> {
                     chatArea.appendText(">> Chyba: " + e.getMessage() + "\n");
@@ -106,6 +147,7 @@ public class ChatController {
                     if (ok) {
                         chatArea.appendText("Ty: " + message + "\n");
                         messageField.clear();
+                        reloadHistoryInBack(); // Okamžitě obnovit po odeslání
                     } else {
                         chatArea.appendText(">> Chyba při odesílání serveru.\n");
                     }
@@ -121,4 +163,48 @@ public class ChatController {
                 });
             }
         }).start();
-    }}
+    }
+    //methods for menu
+    @FXML
+    protected void handleNewChat() {
+        currentChatKey = null;
+        currentReceiver = null;
+        targetUserField.clear();
+        targetUserField.setDisable(false);
+        messageField.setDisable(true);
+        sendBtn.setDisable(true);
+        chatArea.clear();
+        chatArea.setText(">> Režim nového chatu. Zadej příjemce dole a klikni na 'Otevřít chat'.\n");
+    }
+
+    @FXML
+    protected void toggleDarkMode() {
+        isDarkMode = !isDarkMode;
+        if (isDarkMode) {
+            chatArea.getScene().getRoot().getStyleClass().add("dark-mode");
+        } else {
+            chatArea.getScene().getRoot().getStyleClass().remove("dark-mode");
+        }
+    }
+
+    @FXML
+    protected void handleSignOut() {
+        if (autoRefreshTimeline != null) {
+            autoRefreshTimeline.stop(); // Vypneme smyčku stahování
+        }
+        NetworkManager.getInstance().logout(); // Odstraníme session
+
+        try {
+            // Návrat do Login obrazovky
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/graphics/login.fxml"));
+            Parent root = loader.load();
+            Stage stage = (Stage) chatArea.getScene().getWindow();
+            stage.setScene(new Scene(root, 600, 600));
+            stage.setTitle("Cricket - Přihlášení");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+}
+
