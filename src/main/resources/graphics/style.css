@@ -218,3 +218,43 @@
 .dark-mode .apple-menu-bar .label {
     -fx-text-fill: #e0e0e0;
 }
+
+/* --- CHAT bubbles --- */
+
+.modern-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-control-inner-background: transparent;
+}
+.modern-scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* shape of bubble */
+.chat-bubble {
+    -fx-padding: 10px 16px;
+    -fx-font-size: 14px;
+    -fx-max-width: 400px;
+}
+
+.bubble-me {
+    -fx-background-color: #007AFF;
+    -fx-text-fill: white;
+    -fx-background-radius: 20px 20px 4px 20px;
+}
+
+.bubble-other {
+    -fx-background-color: #e5e5ea;
+    -fx-text-fill: #1d1d1f;
+    -fx-background-radius: 20px 20px 20px 4px;
+}
+.dark-mode .bubble-other {
+    -fx-background-color: #3a3a3c;
+    -fx-text-fill: white;
+}
+
+.bubble-system {
+    -fx-text-fill: #86868b;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 5px 0;
+}

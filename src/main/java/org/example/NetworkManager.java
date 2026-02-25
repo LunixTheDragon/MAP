@@ -229,7 +229,35 @@ public class NetworkManager {
         String resp = in.readLine();
         return "MSG OK".equals(resp);
     }
-    public void logout() {
+
+    public String[] getPreferences(String user){
+        try {
+            out.write("GET_PREFS:" + user);
+            out.newLine();
+            out.flush();
+            String resp = in.readLine();
+            if (resp != null && resp.startsWith("PREFS:")){
+                String[] p = resp.split(":", 3);
+                if (p.length >= 3){
+                    return new String[]{ p[1], p[2] };
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+            return new String[]{"false", "NULL"};
+    }
+
+    public void updatePreferences(String user, boolean darkMode, String base64Avatar) {
+        try {
+            String b64 = (base64Avatar == null || base64Avatar.isEmpty()) ? "NULL" : base64Avatar;
+            out.write("UPDATE_PREFS:" + user + ":" + darkMode + ":" + b64);
+            out.newLine();
+            out.flush();
+            in.readLine();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+        public void logout() {
         this.loggedUser = null;
     }
 

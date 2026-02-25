@@ -158,6 +158,25 @@ public class Server {
                             }
                             break;
 
+                        case "GET_PREFS":
+                            if(parts.length >= 2){
+                                String[] prefs = getPreferences(db, parts[1]);
+                                out.write("PREFS:" + prefs[0] + ":" + prefs[1]);
+                                out.newLine();
+                                out.flush();
+                            }
+                            break;
+
+                        case "UPDATE_PREFS":
+                            if (parts.length >= 4) {
+                                boolean dm = Boolean.parseBoolean(parts[2]);
+                                updatePreferences(db, parts[1], dm, parts[3]);
+                                out.write("PREFS_OK");
+                                out.newLine();
+                                out.flush();
+                            }
+                            break;
+
                         default:
                             System.out.println("Neznámý příkaz: " + command);
                     }
@@ -298,5 +317,32 @@ public class Server {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private static void updatePreferences(Conn db, String name, boolean darkMode, String avatarBase64) {
+        String sql = "UPDATE users SET dark_mode = ?, avatar = ? WHERE name = ?";
+        try (Connection conn = db.connect(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setBoolean(1, darkMode);
+            pstmt.setString(2, avatarBase64);
+            pstmt.setString(3, name);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Chyba UPDATE_PREFS: " + e.getMessage());
+        }
+    }
+
+    private static String[] getPreferences(Conn db, String name) {
+        String sql = "SELECT dark_mode, avatar FROM users WHERE name = ?";
+        try (Connection conn = db.connect(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, name);
+            var rs = pstmt.executeQuery();
+            if (rs.next()) {
+                boolean dm = rs.getBoolean("dark_mode");
+                String av = rs.getString("avatar");
+                if (av == null) av = "NULL";
+                return new String[]{String.valueOf(dm), av};
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return new String[]{"false", "NULL"};
     }
 }
