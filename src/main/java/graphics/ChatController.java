@@ -234,7 +234,7 @@ public class ChatController {
 
         if (isDarkMode) {
             rootPane.getStyleClass().add("dark-mode"); // ZMĚNĚNO ZDE
-            themeBtn.setText("☀️");
+            themeBtn.setText("☀");
         } else {
             rootPane.getStyleClass().remove("dark-mode"); // ZMĚNĚNO ZDE
             themeBtn.setText("🌙");
