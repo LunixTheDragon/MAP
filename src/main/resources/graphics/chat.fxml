@@ -30,6 +30,15 @@
 
             <javafx.scene.layout.Region HBox.hgrow="ALWAYS" />
 
+            <HBox fx:id="receiverProfileBox" alignment="CENTER" spacing="12" visible="false">
+                <Circle fx:id="receiverImageCircle" radius="22" fill="#e5e5ea" />
+                <VBox alignment="CENTER_LEFT">
+                    <Label styleClass="dynamic-text" style="-fx-font-weight: 800; -fx-font-size: 13px; -fx-text-fill: #86868b;" text="CHATOVÁNÍ S" />
+                    <Label fx:id="receiverUserLabel" styleClass="dynamic-text" style="-fx-font-weight: bold; -fx-font-size: 18px;" text="Příjemce" />
+                </VBox>
+            </HBox>
+
+            <javafx.scene.layout.Region HBox.hgrow="ALWAYS" />
             <HBox alignment="CENTER_RIGHT" spacing="5">
                 <Button styleClass="icon-btn" text="➕ Nový chat" onAction="#handleNewChat"/>
                 <Button fx:id="themeBtn" styleClass="icon-btn" text="🌙" onAction="#toggleDarkMode"/>

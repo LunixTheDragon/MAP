@@ -258,3 +258,49 @@
     -fx-font-weight: bold;
     -fx-padding: 5px 0;
 }
+/* --- MODERNÍ SCROLLBAR (Apple styl) --- */
+
+/* Základní tvar - tenký profil a průhledné pozadí */
+.modern-scroll-pane .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 8px; /* Tenký moderní posuvník */
+}
+
+/* Průhledná dráha (kolejnice), po které jezdec jezdí */
+.modern-scroll-pane .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+/* Samotný jezdec (Thumb) */
+.modern-scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(0, 0, 0, 0.2); /* Poloprůhledná šedá */
+    -fx-background-radius: 4px; /* Kulaté konce */
+}
+
+/* Efekt po najetí myší na jezdce */
+.modern-scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: rgba(0, 0, 0, 0.4); /* Lehce ztmavne */
+}
+
+/* Úplné skrytí těch ošklivých šipek nahoru/dolů */
+.modern-scroll-pane .scroll-bar:vertical .increment-button,
+.modern-scroll-pane .scroll-bar:vertical .decrement-button {
+    -fx-background-color: transparent;
+    -fx-pref-height: 0px;
+    -fx-padding: 0;
+}
+.modern-scroll-pane .scroll-bar:vertical .increment-arrow,
+.modern-scroll-pane .scroll-bar:vertical .decrement-arrow {
+    -fx-shape: " "; /* Prázdný tvar = neviditelná šipka */
+    -fx-padding: 0;
+}
+
+/* --- SCROLLBAR PRO DARK MODE --- */
+/* V tmavém režimu musí být jezdec bílý (poloprůhledný) */
+.dark-mode .modern-scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(255, 255, 255, 0.25);
+}
+.dark-mode .modern-scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.45);
+}

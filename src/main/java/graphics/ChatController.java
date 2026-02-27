@@ -47,6 +47,9 @@ public class ChatController {
     private Timeline autoRefreshTimeline;
     @FXML private ScrollPane scrollPane;
     @FXML private VBox chatContainer;
+    @FXML private Circle receiverImageCircle;
+    @FXML private Label receiverUserLabel;
+    @FXML private javafx.scene.layout.HBox receiverProfileBox;
 
     // Globální nastavení profilu stahované ze serveru
     private boolean isDarkMode = false;
@@ -179,8 +182,23 @@ public class ChatController {
                     sendBtn.setDisable(false);
                     targetUserField.setDisable(false);
                     messageField.requestFocus();
+                    //pfp of receiver
+                    receiverProfileBox.setVisible(true);
+                    receiverUserLabel.setText(receiver);
+                    receiverImageCircle.setFill(javafx.scene.paint.Color.valueOf("#e5e5ea"));
                 });
                 reloadHistoryInBack();
+                //download of receiver pfp
+                new Thread(() -> {
+                    String[] prefs = NetworkManager.getInstance().getPreferences(receiver);
+                    String b64 = prefs[1];
+                    Platform.runLater(() -> {
+                        Image img = decodeBase64ToImage(b64);
+                        if (img != null) {
+                            receiverImageCircle.setFill(new ImagePattern(img));
+                        }
+                    });
+                }).start();
             } catch (Exception e) {
                 Platform.runLater(() -> {
                     addSystemMessage(">> Chyba: " + e.getMessage() + "\n");
@@ -225,6 +243,7 @@ public class ChatController {
         currentChatKey = null; currentReceiver = null; targetUserField.clear(); targetUserField.setDisable(false);
         messageField.setDisable(true); sendBtn.setDisable(true); clearChat();
         addSystemMessage("Režim nového chatu. Zadej příjemce dole a klikni na 'Otevřít chat'.");
+        receiverProfileBox.setVisible(false);
     }
 
     // --- METODY PRO ULOŽENÍ NA SERVER ---
