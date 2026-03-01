@@ -24,13 +24,13 @@ import org.example.NetworkManager;
 import utils.SecurityUtils;
 import javafx.scene.control.ScrollPane;
 import javax.crypto.SecretKey;
+import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.nio.file.Files;
 import java.security.PrivateKey;
 import java.util.Base64;
 import java.util.List;
-
 
 public class ChatController {
 
@@ -50,6 +50,8 @@ public class ChatController {
     @FXML private Circle receiverImageCircle;
     @FXML private Label receiverUserLabel;
     @FXML private javafx.scene.layout.HBox receiverProfileBox;
+    private TrayIcon trayIcon;
+    private int lastMessageCount = 0;
 
     // Globální nastavení profilu stahované ze serveru
     private boolean isDarkMode = false;
@@ -57,6 +59,17 @@ public class ChatController {
 
     @FXML
     public void initialize() {
+        if (SystemTray.isSupported()) {
+            try {
+                SystemTray tray = SystemTray.getSystemTray();
+                java.awt.Image trayImage = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/logo2.png"));
+                trayIcon = new TrayIcon(trayImage, "Cricket");
+                trayIcon.setImageAutoSize(true);
+                tray.add(trayIcon);
+            } catch (Exception e) {
+                System.out.println("Upozornění nejsou na tomto systému podporována.");
+            }
+        }
         String currentUser = NetworkManager.getInstance().getLoggedUser();
         if (currentUser != null) {
             currentUserLabel.setText(currentUser);
@@ -143,6 +156,27 @@ public class ChatController {
                 Platform.runLater(() -> {
                     clearChat();
                     addSystemMessage("--- 🔒 Zabezpečený chat s " + currentReceiver + " ---");
+
+                    //notifications
+                    //if thee is more msgs then last time
+                    if (lastMessageCount > 0 && history.size() > lastMessageCount) {
+                        //only when window is not focused
+                        Stage stage = (Stage) rootPane.getScene().getWindow();
+                        if (!stage.isFocused() && trayIcon != null){
+
+                            for (int i = lastMessageCount; i < history.size(); i++) {
+                                String msg = history.get(i);
+
+                                //only msgs that wasnt users
+                                if (!msg.startsWith("Ty: ") && msg.contains(": ")){
+                                    String actualText = msg.substring(msg.indexOf(": ") + 2);
+                                    trayIcon.displayMessage("Nová zpráva od " + currentReceiver, actualText, TrayIcon.MessageType.INFO);
+                                }
+                            }
+                        }
+                    }
+                    //actualization of msgs
+                    lastMessageCount = history.size();
                     for (String msg : history) {
                         if (msg.startsWith("Ty: ")) {
                             addBubble(msg.substring(4), true); // Ustřihneme "Ty: "
@@ -160,6 +194,7 @@ public class ChatController {
 
     @FXML
     protected void handleLoadChat(){
+        lastMessageCount = 0;
         String receiver = targetUserField.getText().trim();
         if (receiver.isEmpty()){ return; }
         String user = NetworkManager.getInstance().getLoggedUser();
@@ -242,6 +277,7 @@ public class ChatController {
     protected void handleNewChat() {
         currentChatKey = null; currentReceiver = null; targetUserField.clear(); targetUserField.setDisable(false);
         messageField.setDisable(true); sendBtn.setDisable(true); clearChat();
+        lastMessageCount = 0;
         addSystemMessage("Režim nového chatu. Zadej příjemce dole a klikni na 'Otevřít chat'.");
         receiverProfileBox.setVisible(false);
     }
@@ -324,6 +360,9 @@ public class ChatController {
     @FXML
     protected void handleSignOut() {
         if (autoRefreshTimeline != null) autoRefreshTimeline.stop();
+        if (trayIcon != null && SystemTray.isSupported()) {
+            SystemTray.getSystemTray().remove(trayIcon);
+        }
         NetworkManager.getInstance().logout();
 
         try {

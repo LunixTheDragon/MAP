@@ -1,6 +1,7 @@
 package graphics;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -21,6 +22,12 @@ public class ClientFX extends Application {
         } catch (Exception e) {
             System.out.println("Obrázek logo.png nebyl nalezen v resources.");
         }
+
+        //when user clicks on x button
+        stage.setOnCloseRequest(event -> {
+            Platform.exit();
+            System.exit(0);
+        });
         stage.setScene(scene);
         stage.show();
     }
