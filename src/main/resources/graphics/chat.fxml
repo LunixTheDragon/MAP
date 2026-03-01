@@ -49,18 +49,29 @@
     </top>
 
     <center>
-        <VBox styleClass="glass-panel" style="-fx-padding: 10;">
+        <HBox spacing="15">
             <BorderPane.margin>
                 <Insets bottom="20.0" />
             </BorderPane.margin>
 
-            <javafx.scene.control.ScrollPane fx:id="scrollPane" fitToWidth="true" styleClass="modern-scroll-pane" VBox.vgrow="ALWAYS" hbarPolicy="NEVER">
-                <content>
-                    <VBox fx:id="chatContainer" spacing="12" style="-fx-padding: 10;" />
-                </content>
-            </javafx.scene.control.ScrollPane>
+            <VBox styleClass="glass-panel" prefWidth="250" minWidth="250" style="-fx-padding: 15;">
+                <Label styleClass="header-label" style="-fx-font-size: 16px; -fx-padding: 0 0 10 0;" text="Moje chaty" />
+                <javafx.scene.control.ScrollPane fitToWidth="true" styleClass="modern-scroll-pane" VBox.vgrow="ALWAYS" hbarPolicy="NEVER">
+                    <content>
+                        <VBox fx:id="sidebarList" spacing="5" />
+                    </content>
+                </javafx.scene.control.ScrollPane>
+            </VBox>
 
-        </VBox>
+            <VBox styleClass="glass-panel" style="-fx-padding: 10;" HBox.hgrow="ALWAYS">
+                <javafx.scene.control.ScrollPane fx:id="scrollPane" fitToWidth="true" styleClass="modern-scroll-pane" VBox.vgrow="ALWAYS" hbarPolicy="NEVER">
+                    <content>
+                        <VBox fx:id="chatContainer" spacing="12" style="-fx-padding: 10;" />
+                    </content>
+                </javafx.scene.control.ScrollPane>
+            </VBox>
+
+        </HBox>
     </center>
 
     <bottom>

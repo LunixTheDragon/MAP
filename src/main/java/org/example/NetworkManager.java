@@ -257,6 +257,31 @@ public class NetworkManager {
             throw new RuntimeException(e);
         }
     }
+
+    public List<String> getRecentChats(String user){
+        List<String> chats = new ArrayList<>();
+        try{
+            out.write("GET_RECENT_CHATS:" + user);
+            out.newLine();
+            out.flush();
+            String resp = in.readLine();
+
+                if (resp != null && resp.startsWith("RECENT_CHATS:")){
+                    if (resp.length() > "RECENT_CHATS:".length()){
+                        String data = resp.substring("RECENT_CHATS:".length());
+                        String[] users = data.split(",");
+                        for (String u : users){
+                            if (!u.trim().isEmpty()){
+                                chats.add(u.trim());
+                            }
+                        }
+                    }
+                }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return chats;
+    }
         public void logout() {
         this.loggedUser = null;
     }

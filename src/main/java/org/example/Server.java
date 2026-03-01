@@ -177,6 +177,15 @@ public class Server {
                             }
                             break;
 
+                        case "GET_RECENT_CHATS":
+                            if (parts.length >= 2) {
+                                String recent = getRecentChats(db, parts[1]);
+                                out.write("RECENT_CHATS:" + recent);
+                                out.newLine();
+                                out.flush();
+                            }
+                            break;
+
                         default:
                             System.out.println("Neznámý příkaz: " + command);
                     }
@@ -344,5 +353,27 @@ public class Server {
             }
         } catch (SQLException e) { e.printStackTrace(); }
         return new String[]{"false", "NULL"};
+    }
+
+    private static String getRecentChats(Conn db, String user){
+        //finds every rooms where users name is
+        String sql = "SELECT user1_hash, user2_hash FROM rooms WHERE user1_hash = ? OR user2_hash = ?";
+        StringBuilder sb = new StringBuilder();
+        try (Connection conn = db.connect(); PreparedStatement pstmt = conn.prepareStatement(sql)){
+            pstmt.setString(1, user);
+            pstmt.setString(2, user);
+            var rs = pstmt.executeQuery();
+            while (rs.next()){
+                String u1 = rs.getString("user1_hash");
+                String u2 = rs.getString("user2_hash");
+                //chose the second name
+                String other = u1.equals(user) ? u2 : u1;
+                if (sb.length() > 0) sb.append(",");
+                sb.append(other);
+            }
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
+        return sb.toString();
     }
 }

@@ -13,7 +13,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
 import javafx.stage.FileChooser;
@@ -52,6 +54,7 @@ public class ChatController {
     @FXML private javafx.scene.layout.HBox receiverProfileBox;
     private TrayIcon trayIcon;
     private int lastMessageCount = 0;
+    @FXML private VBox sidebarList;
 
     // Globální nastavení profilu stahované ze serveru
     private boolean isDarkMode = false;
@@ -73,6 +76,7 @@ public class ChatController {
         String currentUser = NetworkManager.getInstance().getLoggedUser();
         if (currentUser != null) {
             currentUserLabel.setText(currentUser);
+            loadRecentChats();
 
             // 1. Spustíme asynchronní vlákno pro stažení nastavení (Dark mode + Avatar) ze serveru
             new Thread(() -> {
@@ -240,6 +244,7 @@ public class ChatController {
                     targetUserField.setDisable(false);
                 });
             }
+            loadRecentChats();
         }).start();
     }
 
@@ -391,6 +396,55 @@ public class ChatController {
         javafx.scene.layout.HBox hbox = new javafx.scene.layout.HBox(label);
         hbox.setAlignment(Pos.CENTER);
         chatContainer.getChildren().add(hbox);
+    }
+
+    private void loadRecentChats(){
+        String currentUser = NetworkManager.getInstance().getLoggedUser();
+
+        new Thread(() -> {
+            List<String> chats = NetworkManager.getInstance().getRecentChats(currentUser);
+            Platform.runLater(() -> {
+                sidebarList.getChildren().clear();
+                if (chats.isEmpty()){
+                    Label empty = new Label("Zatím žádné chaty.");
+                    empty.setStyle("-fx-text-fill: #86868b;");
+                    sidebarList.getChildren().add(empty);
+                }else{
+                    for (String user: chats){
+                        addSideBarItem(user);
+                    }
+                }
+            });
+        }).start();
+    }
+
+    private void addSideBarItem(String user){
+        HBox hBox = new HBox(12);
+        hBox.setAlignment(Pos.CENTER_LEFT);
+        hBox.getStyleClass().add("chat-list-item");
+
+        Circle avatar = new Circle(18, Color.valueOf("#007AFF"));
+        Label label = new Label(user);
+        label.getStyleClass().add("chat-list-item");
+
+        hBox.getChildren().addAll(avatar, label);
+
+        hBox.setOnMouseClicked(e -> {
+            targetUserField.setText(user);
+            handleLoadChat();
+        });
+
+        sidebarList.getChildren().add(hBox);
+
+        new Thread(() -> {
+            String[] prefs = NetworkManager.getInstance().getPreferences(user);
+            Platform.runLater(() -> {
+                Image img = decodeBase64ToImage(prefs[1]);
+                if (img != null) {
+                    avatar.setFill(new ImagePattern(img));
+                }
+            });
+        }).start();
     }
 
     private void clearChat() {
