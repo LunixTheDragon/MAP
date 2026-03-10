@@ -56,7 +56,6 @@ public class ChatController {
     private int lastMessageCount = 0;
     @FXML private VBox sidebarList;
 
-    // Globální nastavení profilu stahované ze serveru
     private boolean isDarkMode = false;
     private String currentBase64Avatar = "NULL";
 
@@ -78,7 +77,7 @@ public class ChatController {
             currentUserLabel.setText(currentUser);
             loadRecentChats();
 
-            // 1. Spustíme asynchronní vlákno pro stažení nastavení (Dark mode + Avatar) ze serveru
+            // Spustíme asynchronní vlákno pro stažení nastavení (Dark mode + Avatar) ze serveru
             new Thread(() -> {
                 String[] prefs = NetworkManager.getInstance().getPreferences(currentUser);
                 boolean dm = Boolean.parseBoolean(prefs[0]);
@@ -90,8 +89,8 @@ public class ChatController {
 
                     // Aplikace Dark Mode
                     if (isDarkMode) {
-                        rootPane.getStyleClass().add("dark-mode"); // ZMĚNĚNO ZDE
-                        themeBtn.setText("☀️");
+                        rootPane.getStyleClass().add("dark-mode");
+                        themeBtn.setText("☀");
                     }
 
                     // Aplikace Avataru
@@ -134,9 +133,7 @@ public class ChatController {
             return null;
         }
     }
-    // ---------------------------------------------------------
 
-    // --- KLASICKÉ CHATOVACÍ METODY ---
     private void setupAutoRefresh(){
         autoRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), event -> {
             if (currentChatKey != null && currentReceiver != null) {
@@ -287,16 +284,16 @@ public class ChatController {
         receiverProfileBox.setVisible(false);
     }
 
-    // --- METODY PRO ULOŽENÍ NA SERVER ---
+
     @FXML
     protected void toggleDarkMode() {
         isDarkMode = !isDarkMode;
 
         if (isDarkMode) {
-            rootPane.getStyleClass().add("dark-mode"); // ZMĚNĚNO ZDE
+            rootPane.getStyleClass().add("dark-mode");
             themeBtn.setText("☀");
         } else {
-            rootPane.getStyleClass().remove("dark-mode"); // ZMĚNĚNO ZDE
+            rootPane.getStyleClass().remove("dark-mode");
             themeBtn.setText("🌙");
         }
 
@@ -332,7 +329,7 @@ public class ChatController {
 
         changePicBtn.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Vyberte obrázek (Ideálně do 2 MB)"); // Omezení pro bezpečí Socketů
+            fileChooser.setTitle("Vyberte obrázek (Ideálně do 2 MB)");
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Obrázky", "*.png", "*.jpg", "*.jpeg"));
 
             File file = fileChooser.showOpenDialog(dialog);

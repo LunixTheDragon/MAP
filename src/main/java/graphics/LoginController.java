@@ -62,7 +62,7 @@ public class LoginController {
     // Metoda pro přepnutí UI (zvětšení/zmenšení okna)
     @FXML
     protected void switchMode() {
-        isLogged = !isLogged; // Přepnutí stavu
+        isLogged = !isLogged;
         errorLabel.setText(""); //restarting error label
 
         if (isLogged) {

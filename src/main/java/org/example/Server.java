@@ -192,7 +192,6 @@ public class Server {
                 } catch (Exception e) {
                     System.err.println("Chyba při zpracování příkazu " + command + ": " + e.getMessage());
                     e.printStackTrace();
-                    // V případě chyby pošleme klientovi aspoň něco, ať nezamrzne
                     out.write("SERVER_ERROR");
                     out.newLine();
                     out.flush();
@@ -312,7 +311,6 @@ public class Server {
     }
 
     private static String getRoomKey(Conn db, String me, String other) {
-        // Oprava: Získáváme user1_hash abychom věděli, který klíč vrátit
         String sql = "SELECT user1_hash, aes_key_for_u1, aes_key_for_u2 FROM rooms WHERE (user1_hash = ? AND user2_hash = ?) OR (user1_hash = ? AND user2_hash = ?)";
         try(Connection conn = db.connect(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, me); pstmt.setString(2, other);

@@ -24,7 +24,7 @@ public class NetworkManager {
     private BufferedReader in;
     private String loggedUser; // Uchováme si, kdo je přihlášen
 
-    // Singleton pattern - abychom měli jen jedno připojení pro celou aplikaci
+    // Singleton pattern
     private static NetworkManager instance;
     public static NetworkManager getInstance() {
         if (instance == null) instance = new NetworkManager();
@@ -34,25 +34,25 @@ public class NetworkManager {
     public void connect() throws IOException {
         if (socket == null || socket.isClosed()) {
             try {
-                // 1. Načtení certifikátu zevnitř aplikace (složka resources)
+
                 InputStream trustStoreStream = getClass().getResourceAsStream("/server.jks");
                 if (trustStoreStream == null) {
                     throw new FileNotFoundException("Certifikát server.jks nebyl nalezen v resources!");
                 }
 
-                // 2. Vytvoření "trezoru" (KeyStore) a načtení našeho souboru pomocí hesla
+                // Vytvoření trezoru (KeyStore) a načtení našeho souboru pomocí hesla
                 KeyStore trustStore = KeyStore.getInstance("JKS");
                 trustStore.load(trustStoreStream, "tajneheslo".toCharArray());
 
-                // 3. Vytvoření manažera, který bude tomuto konkrétnímu certifikátu věřit
+                // Vytvoření manažera, který bude tomuto konkrétnímu certifikátu věřit
                 TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
                 tmf.init(trustStore);
 
-                // 4. Nastavení celého SSL spojení (řekneme mu, ať použije našeho manažera)
+                //  Nastavení celého SSL spojení (řekneme mu, ať použije našeho manažera)
                 SSLContext sslContext = SSLContext.getInstance("TLS");
                 sslContext.init(null, tmf.getTrustManagers(), null);
 
-                // 5. Vytvoření bezpečného TLS (SSL) Socketu místo toho obyčejného
+                // Vytvoření bezpečného TLS (SSL) Socketu místo toho obyčejného
                 SSLSocketFactory sslsf = sslContext.getSocketFactory();
                 socket = sslsf.createSocket(HOST, PORT);
 
@@ -69,7 +69,7 @@ public class NetworkManager {
 
     public boolean login(String name, String pass) {
         try {
-            connect(); // Ujistíme se, že jsme připojeni
+            connect(); // make sure we are connected
 
             out.write("LOG:" + name + ":" + pass);
             out.newLine(); out.flush();
