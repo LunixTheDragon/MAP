@@ -42,7 +42,7 @@
             <HBox alignment="CENTER_RIGHT" spacing="5">
                 <Button styleClass="icon-btn" text="➕ Nový chat" onAction="#handleNewChat"/>
                 <Button fx:id="themeBtn" styleClass="icon-btn" text="🌙" onAction="#toggleDarkMode"/>
-                <Button styleClass="icon-btn" text="⚙️ Nastavení" onAction="#handleProfileSettings"/>
+                <Button styleClass="icon-btn" text="⚙Nastavení" onAction="#handleProfileSettings"/>
                 <Button styleClass="icon-btn, logout-btn" text="🚪 Odhlásit" onAction="#handleSignOut"/>
             </HBox>
         </HBox>

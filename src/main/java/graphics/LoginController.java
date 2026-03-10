@@ -27,12 +27,17 @@ public class LoginController {
     @FXML private Button actionBtn;
     @FXML private Button switchModeBtn;
     @FXML private Label errorLabel;
+    @FXML private TextField passwordTextField;
+    @FXML private Button togglePasswordBtn;
+    private boolean isPasswordVisible = false;
 
     private boolean isLogged = true;
 
     //animations
     @FXML
     public void initialize() {
+
+        passwordTextField.textProperty().bindBidirectional(passwordField.textProperty()); // what user type to the passwordField that same is written in the textField
 
         //starting point
         loginCard.setOpacity(0);
@@ -85,6 +90,17 @@ public class LoginController {
 
         if(username.isEmpty() || password.isEmpty()) {
             errorLabel.setText("Vyplňte všechna pole");
+            shakeCard();
+            return;
+        }
+        String user = usernameField.getText();
+        String pass = passwordField.getText();
+        String mail = emailField.getText();
+
+        // Kontrola nepovolených znaků
+        if (user.contains(":") || pass.contains(":") || (!emailField.isDisabled() && mail.contains(":"))) {
+            errorLabel.setText("Chyba: Zadané údaje nesmí obsahovat znak dvojtečky ':'");
+            errorLabel.setStyle("-fx-text-fill: #ff3b30;");
             shakeCard();
             return;
         }
@@ -170,5 +186,25 @@ public class LoginController {
         shake.setCycleCount(6);
         shake.setAutoReverse(true);
         shake.play();
+    }
+
+    @FXML
+    private void togglePasswordVisibility() {
+        isPasswordVisible = !isPasswordVisible;
+        if (isPasswordVisible) {
+
+            passwordTextField.setVisible(true);
+            passwordTextField.setManaged(true);
+            passwordField.setVisible(false);
+            passwordField.setManaged(false);
+            togglePasswordBtn.setText("🙈");
+        } else {
+
+            passwordField.setVisible(true);
+            passwordField.setManaged(true);
+            passwordTextField.setVisible(false);
+            passwordTextField.setManaged(false);
+            togglePasswordBtn.setText("👁");
+        }
     }
 }

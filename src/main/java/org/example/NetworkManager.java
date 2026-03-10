@@ -67,7 +67,6 @@ public class NetworkManager {
         }
     }
 
-    // Zde je přenesená logika z tvého Client.java
     public boolean login(String name, String pass) {
         try {
             connect(); // Ujistíme se, že jsme připojeni
@@ -129,7 +128,7 @@ public class NetworkManager {
         }
     }
 
-    public SecretKey AESScryptingForChat(String user, String receiver, PrivateKey myPrivKey) throws Exception {
+    public  synchronized SecretKey AESScryptingForChat(String user, String receiver, PrivateKey myPrivKey) throws Exception {
         File aesFile = new File("chat_" + user + "_" + receiver +".key");
         if (aesFile.exists()) {
             String aesKey = java.nio.file.Files.readString(aesFile.toPath());
@@ -190,7 +189,7 @@ public class NetworkManager {
         throw new Exception("Chyba komunikace se serverem.");
     }
 
-    public List<String> fetchHistory(String user, String receiver, SecretKey chatKey) throws Exception {
+    public synchronized List<String> fetchHistory(String user, String receiver, SecretKey chatKey) throws Exception {
         List<String> history = new ArrayList<>();
         out.write("HISTORY:" + user + ":" + receiver);
         out.newLine();
@@ -221,7 +220,7 @@ public class NetworkManager {
     }
 
     // 3. Odeslání nové šifrované zprávy
-    public boolean sendChatMessage(String me, String receiver, String msg, SecretKey chatKey) throws Exception {
+    public synchronized boolean sendChatMessage(String me, String receiver, String msg, SecretKey chatKey) throws Exception {
         String encryptedMsg = SecurityUtils.AESUtils.encrypt(msg, chatKey);
         out.write("MSG:" + me + ":" + receiver + ":" + encryptedMsg);
         out.newLine();
@@ -230,7 +229,7 @@ public class NetworkManager {
         return "MSG OK".equals(resp);
     }
 
-    public String[] getPreferences(String user){
+    public synchronized String[] getPreferences(String user){
         try {
             out.write("GET_PREFS:" + user);
             out.newLine();
@@ -246,7 +245,7 @@ public class NetworkManager {
             return new String[]{"false", "NULL"};
     }
 
-    public void updatePreferences(String user, boolean darkMode, String base64Avatar) {
+    public synchronized void updatePreferences(String user, boolean darkMode, String base64Avatar) {
         try {
             String b64 = (base64Avatar == null || base64Avatar.isEmpty()) ? "NULL" : base64Avatar;
             out.write("UPDATE_PREFS:" + user + ":" + darkMode + ":" + b64);
@@ -258,7 +257,7 @@ public class NetworkManager {
         }
     }
 
-    public List<String> getRecentChats(String user){
+    public synchronized List<String> getRecentChats(String user){
         List<String> chats = new ArrayList<>();
         try{
             out.write("GET_RECENT_CHATS:" + user);

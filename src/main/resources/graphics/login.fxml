@@ -6,6 +6,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.layout.StackPane?>
 <VBox alignment="CENTER" styleClass="main-container" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="graphics.LoginController">    <padding>
         <Insets bottom="40.0" left="40.0" right="40.0" top="40.0"/>
     </padding>
@@ -16,8 +17,14 @@
         <Label style="-fx-text-fill: #86868b; -fx-font-size: 14px; -fx-padding: -10 0 10 0;" text="Přihlaste se pro pokračování" />
 
         <TextField fx:id="usernameField" promptText="Uživatelské jméno" styleClass="input-field" maxWidth="Infinity"/>
-        <PasswordField fx:id="passwordField" promptText="Heslo" styleClass="input-field" maxWidth="Infinity"/>
+        <StackPane alignment="CENTER_RIGHT" maxWidth="Infinity">
+            <TextField fx:id="passwordTextField" promptText="Heslo" styleClass="input-field" maxWidth="Infinity" visible="false" managed="false"/>
 
+            <PasswordField fx:id="passwordField" promptText="Heslo" styleClass="input-field" maxWidth="Infinity"/>
+
+            <Button fx:id="togglePasswordBtn" text="👁" onAction="#togglePasswordVisibility"
+                    style="-fx-background-color: transparent; -fx-cursor: hand; -fx-font-size: 16px; -fx-padding: 0 15 0 0;"/>
+        </StackPane>
         <TextField fx:id="emailField" promptText="Emailová adresa" styleClass="input-field" maxWidth="Infinity" visible="false" managed="false"/>
 
         <Label fx:id="errorLabel" styleClass="error-label" text="" wrapText="true" textAlignment="CENTER"/>
