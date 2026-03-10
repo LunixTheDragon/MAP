@@ -24,35 +24,58 @@ public class NetworkManager {
     private BufferedReader in;
     private String loggedUser; // Uchováme si, kdo je přihlášen
 
-    // Singleton pattern
+    // Singleton pattern - abychom měli jen jedno připojení pro celou aplikaci
     private static NetworkManager instance;
     public static NetworkManager getInstance() {
         if (instance == null) instance = new NetworkManager();
         return instance;
     }
 
+    private File getAppFolder() {
+        String appData = System.getenv("APPDATA");
+        // Pojistka, kdyby to někdo spustil na Macu/Linuxu místo Windows
+        if (appData == null) {
+            appData = System.getProperty("user.home");
+        }
+        File appFolder = new File(appData, "Cricket");
+        if (!appFolder.exists()) {
+            appFolder.mkdirs(); // Vytvoří složku Cricket, pokud ještě neexistuje
+        }
+        return appFolder;
+    }
+
+    public PrivateKey getMyPrivateKey(String username) throws Exception {
+        // Vytáhne privátní klíč ze správné složky Cricket
+        File keyFile = new File(getAppFolder(), username + "_private.key");
+        if (!keyFile.exists()) {
+            throw new FileNotFoundException("Privátní klíč pro uživatele " + username + " nebyl nalezen.");
+        }
+        String privKeyStr = java.nio.file.Files.readString(keyFile.toPath());
+        return SecurityUtils.RSAUtils.getPrivateKeyFromString(privKeyStr);
+    }
+
     public void connect() throws IOException {
         if (socket == null || socket.isClosed()) {
             try {
-
+                // 1. Načtení certifikátu zevnitř aplikace (složka resources)
                 InputStream trustStoreStream = getClass().getResourceAsStream("/server.jks");
                 if (trustStoreStream == null) {
                     throw new FileNotFoundException("Certifikát server.jks nebyl nalezen v resources!");
                 }
 
-                // Vytvoření trezoru (KeyStore) a načtení našeho souboru pomocí hesla
+                // 2. Vytvoření "trezoru" (KeyStore) a načtení našeho souboru pomocí hesla
                 KeyStore trustStore = KeyStore.getInstance("JKS");
                 trustStore.load(trustStoreStream, "tajneheslo".toCharArray());
 
-                // Vytvoření manažera, který bude tomuto konkrétnímu certifikátu věřit
+                // 3. Vytvoření manažera, který bude tomuto konkrétnímu certifikátu věřit
                 TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
                 tmf.init(trustStore);
 
-                //  Nastavení celého SSL spojení (řekneme mu, ať použije našeho manažera)
+                // 4. Nastavení celého SSL spojení (řekneme mu, ať použije našeho manažera)
                 SSLContext sslContext = SSLContext.getInstance("TLS");
                 sslContext.init(null, tmf.getTrustManagers(), null);
 
-                // Vytvoření bezpečného TLS (SSL) Socketu místo toho obyčejného
+                // 5. Vytvoření bezpečného TLS (SSL) Socketu místo toho obyčejného
                 SSLSocketFactory sslsf = sslContext.getSocketFactory();
                 socket = sslsf.createSocket(HOST, PORT);
 
@@ -69,7 +92,7 @@ public class NetworkManager {
 
     public boolean login(String name, String pass) {
         try {
-            connect(); // make sure we are connected
+            connect(); // Ujistíme se, že jsme připojeni
 
             out.write("LOG:" + name + ":" + pass);
             out.newLine(); out.flush();
@@ -78,7 +101,9 @@ public class NetworkManager {
 
             if (response != null && response.startsWith("AUTH_CHALLENGE")){
                 String challenge = response.split(":")[1];
-                File keyFile = new File(name +"_private.key");
+
+                // OPRAVA: Cesta směřuje do složky Cricket
+                File keyFile = new File(getAppFolder(), name +"_private.key");
                 if (!keyFile.exists()) return false;
 
                 String privKeyStr = java.nio.file.Files.readString(keyFile.toPath());
@@ -99,6 +124,7 @@ public class NetworkManager {
         }
         return false;
     }
+
     public boolean register(String name, String pass, String email) {
         try {
             connect();
@@ -108,9 +134,12 @@ public class NetworkManager {
             String pubKeyStr = SecurityUtils.RSAUtils.keyToString(keyPair.getPublic());
             String privKeyStr = SecurityUtils.RSAUtils.keyToString(keyPair.getPrivate());
 
-            try (FileWriter fw = new FileWriter(name + "_private.key")) {
+            // OPRAVA: Soubor s privátním klíčem se vytvoří ve složce Cricket
+            File keyFile = new File(getAppFolder(), name + "_private.key");
+            try (FileWriter fw = new FileWriter(keyFile)) {
                 fw.write(privKeyStr);
             }
+
             // Vytvoření hashe a odeslání na server
             String securityHash = SecurityUtils.createUserSecurityHash(privKeyStr, pubKeyStr);
             out.write("REG:" + name + ":" + pass + ":" + email + ":" + pubKeyStr + ":" + securityHash);
@@ -119,17 +148,16 @@ public class NetworkManager {
 
             String response = in.readLine();
             return "REG_OK".equals(response);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchAlgorithmException e) {
+        } catch (IOException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public  synchronized SecretKey AESScryptingForChat(String user, String receiver, PrivateKey myPrivKey) throws Exception {
-        File aesFile = new File("chat_" + user + "_" + receiver +".key");
+    public synchronized SecretKey AESScryptingForChat(String user, String receiver, PrivateKey myPrivKey) throws Exception {
+        // OPRAVA: Cesta pro AES klíče směřuje do složky Cricket
+        File aesFile = new File(getAppFolder(), "chat_" + user + "_" + receiver +".key");
         if (aesFile.exists()) {
             String aesKey = java.nio.file.Files.readString(aesFile.toPath());
             return SecurityUtils.AESUtils.stringToKey(aesKey);
@@ -242,7 +270,7 @@ public class NetworkManager {
                 }
             }
         } catch (Exception e) { e.printStackTrace(); }
-            return new String[]{"false", "NULL"};
+        return new String[]{"false", "NULL"};
     }
 
     public synchronized void updatePreferences(String user, boolean darkMode, String base64Avatar) {
@@ -265,23 +293,24 @@ public class NetworkManager {
             out.flush();
             String resp = in.readLine();
 
-                if (resp != null && resp.startsWith("RECENT_CHATS:")){
-                    if (resp.length() > "RECENT_CHATS:".length()){
-                        String data = resp.substring("RECENT_CHATS:".length());
-                        String[] users = data.split(",");
-                        for (String u : users){
-                            if (!u.trim().isEmpty()){
-                                chats.add(u.trim());
-                            }
+            if (resp != null && resp.startsWith("RECENT_CHATS:")){
+                if (resp.length() > "RECENT_CHATS:".length()){
+                    String data = resp.substring("RECENT_CHATS:".length());
+                    String[] users = data.split(",");
+                    for (String u : users){
+                        if (!u.trim().isEmpty()){
+                            chats.add(u.trim());
                         }
                     }
                 }
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return chats;
     }
-        public void logout() {
+
+    public void logout() {
         this.loggedUser = null;
     }
 

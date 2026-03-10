@@ -206,9 +206,7 @@ public class ChatController {
 
         new Thread(() -> {
             try {
-                File keyFile = new File(user + "_private.key");
-                String privKeyStr = Files.readString(keyFile.toPath());
-                PrivateKey userPrivKey = SecurityUtils.RSAUtils.getPrivateKeyFromString(privKeyStr);
+                PrivateKey userPrivKey = NetworkManager.getInstance().getMyPrivateKey(user);
 
                 currentChatKey = NetworkManager.getInstance().AESScryptingForChat(user, receiver, userPrivKey);
                 currentReceiver = receiver;
