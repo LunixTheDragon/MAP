@@ -16,8 +16,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NetworkManager {
-    private static final String HOST = "127.0.0.1";
     private static final int PORT = 14000;
+    private String host = "127.0.0.1";
+    private NetworkManager() {
+        loadServerIp();
+    }
+
+    private void loadServerIp() {
+        File ipFile = new File(getAppFolder(), "server_ip.txt");
+        if (ipFile.exists()) {
+            try {
+                host = java.nio.file.Files.readString(ipFile.toPath()).trim();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            saveServerIp("127.0.0.1"); // Vytvoří soubor s výchozí IP
+        }
+    }
+    public void saveServerIp(String ip) {
+        this.host = ip;
+        File ipFile = new File(getAppFolder(), "server_ip.txt");
+        try (FileWriter fw = new FileWriter(ipFile)) {
+            fw.write(ip);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     private Socket socket;
     private BufferedWriter out;
@@ -77,7 +102,7 @@ public class NetworkManager {
 
                 // 5. Vytvoření bezpečného TLS (SSL) Socketu místo toho obyčejného
                 SSLSocketFactory sslsf = sslContext.getSocketFactory();
-                socket = sslsf.createSocket(HOST, PORT);
+                socket = sslsf.createSocket(host, PORT);
 
                 // Klasické streamy pro čtení a zápis, ty zůstávají stejné
                 out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
@@ -316,5 +341,8 @@ public class NetworkManager {
 
     public String getLoggedUser() {
         return loggedUser;
+    }
+    public String getServerIp() {
+        return host;
     }
 }

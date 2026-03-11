@@ -26,7 +26,11 @@
                     style="-fx-background-color: transparent; -fx-cursor: hand; -fx-font-size: 16px; -fx-padding: 0 15 0 0;"/>
         </StackPane>
         <TextField fx:id="emailField" promptText="Emailová adresa" styleClass="input-field" maxWidth="Infinity" visible="false" managed="false"/>
-
+        <VBox spacing="5" alignment="CENTER_LEFT" maxWidth="Infinity">
+            <Label text="IP adresa serveru (pro připojení na jinou síť):"
+                   style="-fx-text-fill: #86868b; -fx-font-size: 12px; -fx-padding: 0 0 0 5;"/>
+            <TextField fx:id="serverIpField" promptText="např. 127.0.0.1" styleClass="input-field" maxWidth="Infinity"/>
+        </VBox>
         <Label fx:id="errorLabel" styleClass="error-label" text="" wrapText="true" textAlignment="CENTER"/>
 
         <VBox spacing="15">

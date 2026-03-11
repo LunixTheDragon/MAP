@@ -29,6 +29,7 @@ public class LoginController {
     @FXML private Label errorLabel;
     @FXML private TextField passwordTextField;
     @FXML private Button togglePasswordBtn;
+    @FXML private TextField serverIpField;
     private boolean isPasswordVisible = false;
 
     private boolean isLogged = true;
@@ -39,6 +40,7 @@ public class LoginController {
 
         passwordTextField.textProperty().bindBidirectional(passwordField.textProperty()); // what user type to the passwordField that same is written in the textField
 
+        serverIpField.setText(NetworkManager.getInstance().getServerIp());
         //starting point
         loginCard.setOpacity(0);
         loginCard.setTranslateY(30);
@@ -87,6 +89,9 @@ public class LoginController {
     protected void handleSubmit() {
         String username = usernameField.getText();
         String password = passwordField.getText();
+        String ip = serverIpField.getText().trim();
+        if (ip.isEmpty()) ip = "127.0.0.1";
+        NetworkManager.getInstance().saveServerIp(ip);
 
         if(username.isEmpty() || password.isEmpty()) {
             errorLabel.setText("Vyplňte všechna pole");
@@ -178,6 +183,7 @@ public class LoginController {
         passwordField.setDisable(disabled);
         emailField.setDisable(disabled);
         actionBtn.setDisable(disabled);
+        serverIpField.setDisable(disabled);
     }
     //shaking animation
     private void shakeCard() {
