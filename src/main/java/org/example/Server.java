@@ -26,12 +26,10 @@ public class Server {
         int maxClients = Runtime.getRuntime().availableProcessors() * 2;
         ExecutorService pool = Executors.newFixedThreadPool(maxClients);
 
-        //cesta k certifikatum na SSL
         System.setProperty("javax.net.ssl.keyStore", "src/main/resources/server.jks");
         System.setProperty("javax.net.ssl.keyStorePassword", "tajneheslo");
 
         try {
-            // Vytvoření SSL Server Socketu
             SSLServerSocketFactory sslssf = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
             try(SSLServerSocket serverSocket = (SSLServerSocket) sslssf.createServerSocket(PORT)) {
 
@@ -202,7 +200,6 @@ public class Server {
         }
     }
 
-    // --- DB METODY ---
 
     private static void saveMessageToDb(Conn db, String sender, String receiver, String text) {
         String sql = "INSERT INTO messages (sender_name, receiver_name, message_text) VALUES (?, ?, ?)";
@@ -354,7 +351,6 @@ public class Server {
     }
 
     private static String getRecentChats(Conn db, String user){
-        //finds every rooms where users name is
         String sql = "SELECT user1_hash, user2_hash FROM rooms WHERE user1_hash = ? OR user2_hash = ?";
         StringBuilder sb = new StringBuilder();
         try (Connection conn = db.connect(); PreparedStatement pstmt = conn.prepareStatement(sql)){

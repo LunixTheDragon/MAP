@@ -10,7 +10,6 @@ public class ClientFX extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        // Načteme FXML soubor (cestu uprav podle své struktury složek)
         FXMLLoader fxmlLoader = new FXMLLoader(ClientFX.class.getResource("/graphics/login.fxml"));
 
         Scene scene = new Scene(fxmlLoader.load(), 600, 600);
@@ -23,7 +22,6 @@ public class ClientFX extends Application {
             System.out.println("Obrázek logo.png nebyl nalezen v resources.");
         }
 
-        //when user clicks on x button
         stage.setOnCloseRequest(event -> {
             Platform.exit();
             System.exit(0);

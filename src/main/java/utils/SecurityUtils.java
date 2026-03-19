@@ -22,10 +22,8 @@ public class SecurityUtils {
         return BCrypt.checkpw(password, hashedPassword);
     }
     public static String createUserSecurityHash(String privKeyStr, String pubKeyStr) throws Exception {
-        //connected hashes
         String combined = privKeyStr + pubKeyStr;
 
-        //hash combined
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hash = digest.digest(combined.getBytes(StandardCharsets.UTF_8));
 
@@ -72,7 +70,6 @@ public class SecurityUtils {
         }
         public static PrivateKey getPrivateKeyFromString(String key64) throws Exception {
             byte[] data = Base64.getDecoder().decode(key64);
-            // Privátní klíče v Javě používají standard PKCS8
             PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(data);
             KeyFactory factory = KeyFactory.getInstance("RSA");
             return factory.generatePrivate(spec);

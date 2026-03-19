@@ -77,7 +77,6 @@ public class ChatController {
             currentUserLabel.setText(currentUser);
             loadRecentChats();
 
-            // Spustíme asynchronní vlákno pro stažení nastavení (Dark mode + Avatar) ze serveru
             new Thread(() -> {
                 String[] prefs = NetworkManager.getInstance().getPreferences(currentUser);
                 boolean dm = Boolean.parseBoolean(prefs[0]);
@@ -87,13 +86,11 @@ public class ChatController {
                     isDarkMode = dm;
                     currentBase64Avatar = b64;
 
-                    // Aplikace Dark Mode
                     if (isDarkMode) {
                         rootPane.getStyleClass().add("dark-mode");
                         themeBtn.setText("☀");
                     }
 
-                    // Aplikace Avataru
                     Image img = decodeBase64ToImage(b64);
                     if (img != null) {
                         profileImageCircle.setFill(new ImagePattern(img));
@@ -114,7 +111,6 @@ public class ChatController {
         setupAutoRefresh();
     }
 
-    // --- POMOCNÉ METODY PRO PŘEVOD OBRÁZKU NA TEXT (BASE64) ---
     private String encodeFileToBase64(File file) {
         try {
             byte[] fileContent = Files.readAllBytes(file.toPath());
@@ -158,17 +154,13 @@ public class ChatController {
                     clearChat();
                     addSystemMessage("--- 🔒 Zabezpečený chat s " + currentReceiver + " ---");
 
-                    //notifications
-                    //if thee is more msgs then last time
                     if (lastMessageCount > 0 && history.size() > lastMessageCount) {
-                        //only when window is not focused
                         Stage stage = (Stage) rootPane.getScene().getWindow();
                         if (!stage.isFocused() && trayIcon != null){
 
                             for (int i = lastMessageCount; i < history.size(); i++) {
                                 String msg = history.get(i);
 
-                                //only msgs that wasnt users
                                 if (!msg.startsWith("Ty: ") && msg.contains(": ")){
                                     String actualText = msg.substring(msg.indexOf(": ") + 2);
                                     trayIcon.displayMessage("Nová zpráva od " + currentReceiver, actualText, TrayIcon.MessageType.INFO);
@@ -176,14 +168,13 @@ public class ChatController {
                             }
                         }
                     }
-                    //actualization of msgs
                     lastMessageCount = history.size();
                     for (String msg : history) {
                         if (msg.startsWith("Ty: ")) {
-                            addBubble(msg.substring(4), true); // Ustřihneme "Ty: "
+                            addBubble(msg.substring(4), true);
                         }else if (msg.contains(": ")) {
                             int colonIndex = msg.indexOf(": ");
-                            addBubble(msg.substring(colonIndex + 2), false); // Ustřihneme jméno příjemce
+                            addBubble(msg.substring(colonIndex + 2), false);
                         } else {
                             addSystemMessage(msg);
                         }
@@ -216,13 +207,11 @@ public class ChatController {
                     sendBtn.setDisable(false);
                     targetUserField.setDisable(false);
                     messageField.requestFocus();
-                    //pfp of receiver
                     receiverProfileBox.setVisible(true);
                     receiverUserLabel.setText(receiver);
                     receiverImageCircle.setFill(javafx.scene.paint.Color.valueOf("#e5e5ea"));
                 });
                 reloadHistoryInBack();
-                //download of receiver pfp
                 new Thread(() -> {
                     String[] prefs = NetworkManager.getInstance().getPreferences(receiver);
                     String b64 = prefs[1];
@@ -333,7 +322,6 @@ public class ChatController {
             File file = fileChooser.showOpenDialog(dialog);
             if (file != null) {
                 try {
-                    // Převod na Base64 a uložení
                     currentBase64Avatar = encodeFileToBase64(file);
 
                     Image newImg = decodeBase64ToImage(currentBase64Avatar);
@@ -341,7 +329,6 @@ public class ChatController {
                     previewCircle.setFill(pattern);
                     profileImageCircle.setFill(pattern);
 
-                    // Uložit do DB na pozadí
                     new Thread(() -> {
                         NetworkManager.getInstance().updatePreferences(currentUser, isDarkMode, currentBase64Avatar);
                     }).start();

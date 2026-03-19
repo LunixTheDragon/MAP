@@ -38,24 +38,20 @@ public class LoginController {
     @FXML
     public void initialize() {
 
-        passwordTextField.textProperty().bindBidirectional(passwordField.textProperty()); // what user type to the passwordField that same is written in the textField
+        passwordTextField.textProperty().bindBidirectional(passwordField.textProperty());
 
         serverIpField.setText(NetworkManager.getInstance().getServerIp());
-        //starting point
         loginCard.setOpacity(0);
         loginCard.setTranslateY(30);
 
-        //animace pruhlednosti
         FadeTransition fade = new FadeTransition(Duration.seconds(0.8), loginCard);
         fade.setToValue(1);
         fade.setFromValue(0);
 
-        // Animace pohybu nahoru (Slide Up)
         TranslateTransition translate = new TranslateTransition(Duration.seconds(0.8), loginCard);
         translate.setToY(0);
         translate.setFromY(30);
 
-        // Spustíme obě animace najednou
         ParallelTransition transition = new ParallelTransition(fade, translate);
         transition.setDelay(Duration.seconds(0.2)); // Malé zpoždění po startu
         transition.play();
@@ -79,7 +75,6 @@ public class LoginController {
             switchModeBtn.setText("Už máte účet? Přihlaste se");
         }
 
-        //adjusting to what is inside
         Stage stage = (Stage) actionBtn.getScene().getWindow();
         stage.sizeToScene();
     }
@@ -102,7 +97,6 @@ public class LoginController {
         String pass = passwordField.getText();
         String mail = emailField.getText();
 
-        // Kontrola nepovolených znaků
         if (user.contains(":") || pass.contains(":") || (!emailField.isDisabled() && mail.contains(":"))) {
             errorLabel.setText("Chyba: Zadané údaje nesmí obsahovat znak dvojtečky ':'");
             errorLabel.setStyle("-fx-text-fill: #ff3b30;");
@@ -111,10 +105,9 @@ public class LoginController {
         }
 
         errorLabel.setText("Connecting..");
-        errorLabel.setStyle("-fx-text-fill: #3390ec;");//blue color at loading state
+        errorLabel.setStyle("-fx-text-fill: #3390ec;");
 
 
-        // Zablokujeme pole během načítání
         usernameField.setDisable(true);
         passwordField.setDisable(true);
         emailField.setDisable(true);
@@ -123,15 +116,13 @@ public class LoginController {
         new Thread(() -> {
             boolean success;
             if (isLogged) {
-                // Login
+
                 success = NetworkManager.getInstance().login(username, password);
             } else {
-                // signIn
                 String email = emailField.getText();
                 success = NetworkManager.getInstance().register(username, password, email);
             }
 
-            // waiting for thread to finish task
             Platform.runLater(() -> {
                 if (success) {
                     if (isLogged) {
@@ -163,7 +154,7 @@ public class LoginController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/graphics/chat.fxml"));
             Parent root = loader.load();
             Stage stage = (Stage) usernameField.getScene().getWindow();
-            // Animace odchodu (Fade Out) před přepnutím
+
             FadeTransition fadeOut = new FadeTransition(Duration.seconds(0.4), loginCard);
             fadeOut.setFromValue(1);
             fadeOut.setToValue(0);
