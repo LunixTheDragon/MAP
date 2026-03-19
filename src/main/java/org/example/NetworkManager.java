@@ -376,6 +376,29 @@ public class NetworkManager {
             this.sessionPassword = null;
         }
     }
+    public synchronized List<String> searchUsers(String prefix) {
+        List<String> results = new ArrayList<>();
+        try {
+            out.write("SEARCH_USERS:" + prefix);
+            out.newLine();
+            out.flush();
+            String resp = in.readLine();
+
+            if (resp != null && resp.startsWith("SEARCH_RESULTS:")) {
+                if (resp.length() > "SEARCH_RESULTS:".length()) {
+                    String data = resp.substring("SEARCH_RESULTS:".length());
+                    for (String u : data.split(",")) {
+                        if (!u.trim().isEmpty()) {
+                            results.add(u.trim());
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return results;
+    }
 
     public String getLoggedUser() {
         return loggedUser;

@@ -8,8 +8,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -24,7 +27,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.example.NetworkManager;
 import utils.SecurityUtils;
-import javafx.scene.control.ScrollPane;
+
 import javax.crypto.SecretKey;
 import java.awt.*;
 import java.io.ByteArrayInputStream;
@@ -58,6 +61,7 @@ public class ChatController {
 
     private boolean isDarkMode = false;
     private String currentBase64Avatar = "NULL";
+    private ContextMenu searchMenu = new ContextMenu();
 
     @FXML
     public void initialize() {
@@ -109,6 +113,41 @@ public class ChatController {
         messageField.setDisable(true);
         sendBtn.setDisable(true);
         setupAutoRefresh();
+
+        searchMenu.getStyleClass().add("search-menu");
+
+        targetUserField.textProperty().addListener((observable, oldValue, newValue) -> {
+            String text = newValue.trim();
+            if (text.isEmpty()) {
+                searchMenu.hide();
+                return;
+            }
+
+            new Thread(() -> {
+                List<String> users = NetworkManager.getInstance().searchUsers(text);
+
+                Platform.runLater(() -> {
+                    searchMenu.getItems().clear();
+                    if (users.isEmpty()) {
+                        searchMenu.hide();
+                    } else {
+                        for (String u : users) {
+                            MenuItem item = new MenuItem(u);
+                            item.setOnAction(e -> {
+                                targetUserField.setText(u);
+                                searchMenu.hide();
+                                handleLoadChat();
+                            });
+                            searchMenu.getItems().add(item);
+                        }
+
+                        if (!searchMenu.isShowing() && targetUserField.getScene() != null) {
+                            searchMenu.show(targetUserField, javafx.geometry.Side.BOTTOM, 0, 0);
+                        }
+                    }
+                });
+            }).start();
+        });
     }
 
     private String encodeFileToBase64(File file) {
